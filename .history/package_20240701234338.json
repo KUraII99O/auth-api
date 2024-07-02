@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:frontend": "cd D:\\MainProject\\Farm-Dairy && npm run dev",
+    "start:frontend": "react-scripts start",
     "start:backend": "node index.js",
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
   },

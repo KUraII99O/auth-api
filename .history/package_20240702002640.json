@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:frontend": "cd D:\\MainProject\\Farm-Dairy && npm run dev",
+    "start:frontend": "npm run dev --prefix ../Farm-Dairy",
     "start:backend": "node index.js",
-    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "dev": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
   },
   "keywords": [],
   "author": "",

@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:frontend": "cd D:\\MainProject\\Farm-Dairy && npm run dev",
-    "start:backend": "node index.js",
-    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
-  },
+  "start:frontend": "react-scripts start",
+  "start:backend": "node server.js",
+  "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -18,7 +18,6 @@
     "express": "^4.18.3",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
-    "react-scripts": "^3.0.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
