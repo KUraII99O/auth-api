@@ -4,11 +4,17 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
+const mongoose = require('mongoose');
 
 const app = express();
 const PORT = 3000;
 const adminhash = bcrypt.hashSync("adminpassword", 10);
 const cors = require("cors");
+
+mongoose.connect('mongodb://127.0.0.1:27017/farmdairy?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.10')
+  .then(() => console.log("Connected to database"))
+  .catch(err => console.error("Error connecting to database", err));
+
 
 const users = [
   {
@@ -126,6 +132,17 @@ function generateInvoice(user) {
   };
 }
 
+
+
+const User = mongoose.model('User', {
+  id: String,
+  email: String,
+  username: String,
+  password: String,
+  plan: Object,
+  type: String
+});
+
 app.post("/register", async (req, res) => {
   const { email, password, planId, username } = req.body;
   const userExists = users.some((u) => u.email === email);
@@ -151,16 +168,21 @@ app.post("/register", async (req, res) => {
   const userId = uuidv4(); // Generate UUID for user ID
   const type = "user"; // Set default user type
 
-  const newUser = {
+  const newUser = new User({
     id: userId,
     email,
     username,
     password: hashedPassword,
     plan,
     type,
-  };
+  });
 
-  users.push(newUser);
+  // Save to MongoDB
+  newUser.save()
+    .then(() => console.log('User saved to MongoDB'))
+    .catch(err => console.error('Error saving user to MongoDB', err));
+
+  users.push(newUser); // Push to in-memory array
 
   // Generate invoice only if plan is not Free Plan
   let newInvoice;
@@ -180,19 +202,28 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const user = users.find((u) => u.email === email);
-  if (!user) {
-    return res.status(400).json({ error: "Invalid email or password" });
-  }
-
   try {
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: "Invalid email or password" });
+    // Check in-memory array first
+    const userInMemory = users.find((u) => u.email === email);
+    if (userInMemory) {
+      const isMatch = await bcrypt.compare(password, userInMemory.password);
+      if (isMatch) {
+        return res.status(200).json({ message: "Login successful (in memory)", user: userInMemory });
+      }
     }
 
-    return res.status(200).json({ message: "Login successful", user });
+    // If not found in-memory, check MongoDB
+    const userInMongoDB = await User.findOne({ email });
+    if (userInMongoDB) {
+      const isMatch = await bcrypt.compare(password, userInMongoDB.password);
+      if (isMatch) {
+        return res.status(200).json({ message: "Login successful (MongoDB)", user: userInMongoDB });
+      }
+    }
+
+    return res.status(400).json({ error: "Invalid email or password" });
   } catch (err) {
+    console.error("Login failed:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
