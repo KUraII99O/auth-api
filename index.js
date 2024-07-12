@@ -4,28 +4,20 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const app = express();
 const PORT = 3000;
 const adminhash = bcrypt.hashSync("adminpassword", 10);
 const cors = require("cors");
 
-mongoose.connect('mongodb://127.0.0.1:27017/farmdairy?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.10')
+mongoose
+  .connect(
+    "mongodb://127.0.0.1:27017/farmdairy?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.10"
+  )
   .then(() => console.log("Connected to database"))
-  .catch(err => console.error("Error connecting to database", err));
+  .catch((err) => console.error("Error connecting to database", err));
 
-
-const users = [
-  {
-    id: 1,
-    username: "admin",
-    email: "admin@admin.com",
-    password: adminhash,
-    type: "admin",
-    Image: "https://picsum.photos/200/300",
-  },
-];
 const staffs = [];
 const employees = [];
 const milks = [];
@@ -34,7 +26,7 @@ const cowFeeds = [];
 const routineMonitors = [];
 const vaccineMonitors = [];
 const stalls = [];
-const expenses  = [];
+const expenses = [];
 const cows = [];
 const calves = [];
 const pregnancies = [];
@@ -47,8 +39,8 @@ const subscriptionPlans = [
     features: {
       description: "Basic features",
       limitations: {
-        calves:2,
-        staffs:10,
+        calves: 2,
+        staffs: 10,
         cows: 10,
         usageHours: 10,
       },
@@ -61,9 +53,9 @@ const subscriptionPlans = [
     features: {
       description: "Basic features + Additional features",
       limitations: {
-        calves:50,
+        calves: 50,
 
-        staffs:50,
+        staffs: 50,
         cows: 50,
         usageHours: 50,
       },
@@ -76,9 +68,9 @@ const subscriptionPlans = [
     features: {
       description: "Basic features + Additional features",
       limitations: {
-        calves:100,
+        calves: 100,
 
-        staffs:100,
+        staffs: 100,
         cows: 100,
         usageHours: 100,
       },
@@ -91,7 +83,7 @@ const subscriptionPlans = [
     features: {
       description: "Basic features + Additional features + Premium support",
       limitations: {
-        calves:Infinity,
+        calves: Infinity,
         staffs: Infinity,
         cows: Infinity,
         usageHours: Infinity,
@@ -132,16 +124,67 @@ function generateInvoice(user) {
   };
 }
 
-
-
-const User = mongoose.model('User', {
-  id: String,
+const User = mongoose.model("User", {
+  id: { type: String, required: true }, // Ensure id is a string
   email: String,
   username: String,
   password: String,
   plan: Object,
-  type: String
+  type: String,
+  name: String,
+  mobile: String,
+  designation: String,
+  joiningDate: Date,
+  permanentAddress: String,
+  nid: String,
+  image: String,
+  userType: String,
+  presentAddress: String,
+  basicSalary: String,
+  grossSalary: String,
+  resignDate: Date,
+  status: Boolean,
 });
+
+const users = [
+  {
+    id: uuidv4(),
+    username: "admin",
+    email: "admin@admin.com",
+    password: adminhash,
+    type: "admin",
+    Image: "https://picsum.photos/200/300",
+  },
+];
+
+users
+  .map((user) => new User({ ...user }))
+  .forEach((user) => {
+    // Save to MongoDB
+    user
+      .save()
+      .then(() => console.log("User saved to MongoDB"))
+      .catch((err) => console.error("Error saving user to MongoDB", err));
+  });
+
+  const Staff = mongoose.model("Staff", {
+    id: { type: String, required: true }, // Ensure id is a string
+    name: String,
+    email: String,
+    mobile: String,
+    designation: String,
+    joiningDate: String,
+    permanentAddress: String,
+    nid: String,
+    image: String,
+    userType: String,
+    presentAddress: String,
+    basicSalary: String,
+    grossSalary: String,
+    resignDate: String,
+    status: Boolean,
+    userId: String,
+  });
 
 app.post("/register", async (req, res) => {
   const { email, password, planId, username } = req.body;
@@ -178,9 +221,10 @@ app.post("/register", async (req, res) => {
   });
 
   // Save to MongoDB
-  newUser.save()
-    .then(() => console.log('User saved to MongoDB'))
-    .catch(err => console.error('Error saving user to MongoDB', err));
+  newUser
+    .save()
+    .then(() => console.log("User saved to MongoDB"))
+    .catch((err) => console.error("Error saving user to MongoDB", err));
 
   users.push(newUser); // Push to in-memory array
 
@@ -208,7 +252,10 @@ app.post("/login", async (req, res) => {
     if (userInMemory) {
       const isMatch = await bcrypt.compare(password, userInMemory.password);
       if (isMatch) {
-        return res.status(200).json({ message: "Login successful (in memory)", user: userInMemory });
+        return res.status(200).json({
+          message: "Login successful (in memory)",
+          user: userInMemory,
+        });
       }
     }
 
@@ -217,7 +264,9 @@ app.post("/login", async (req, res) => {
     if (userInMongoDB) {
       const isMatch = await bcrypt.compare(password, userInMongoDB.password);
       if (isMatch) {
-        return res.status(200).json({ message: "Login successful (MongoDB)", user: userInMongoDB });
+        return res
+          .status(200)
+          .json({ message: "Login successful (MongoDB)", user: userInMongoDB });
       }
     }
 
@@ -229,130 +278,199 @@ app.post("/login", async (req, res) => {
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-// Add User Endpoint
-app.post("/users", (req, res) => {
-  const newUser = { ...req.body };
-  users.push(newUser);
-  res.status(201).json({ message: "User added successfully", user: newUser });
-});
+// Endpoint to add a user
+app.post("/users", async (req, res) => {
+  try {
+    const newUser = new User({ ...req.body });
+    await newUser.save(); // Save user to MongoDB
 
-// Get Users Endpoint
-app.get("/users", (req, res) => {
-  const { userId } = req.query;
-  res.json(users.filter((user) => user.userId === userId));
-});
+    users.push(newUser); // Add user to in-memory array (optional)
 
-// Edit User Endpoint
-app.put("/users/:id", (req, res) => {
-  const { id } = req.params;
-  const updatedUser = req.body;
-  const index = users.findIndex((user) => user.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "User not found" });
+    res.status(201).json({ message: "User added successfully", user: newUser });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  users[index] = updatedUser;
-  res.json({
-    message: "User data updated successfully",
-    user: updatedUser,
-  });
 });
 
-// Delete User Endpoint
-app.delete("/users/:id", (req, res) => {
-  const { id } = req.params;
-  const index = users.findIndex((user) => user.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "User not found" });
+// Endpoint to get users
+app.get("/users", async (req, res) => {
+  try {
+    let users = await User.find();
+    const { userId } = req.query;
+    let result;
+    if (userId) {
+      result = users.filter((user) => user.userId === userId);
+    } else {
+      result = users; // Return all users (in-memory)
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  const deletedUser = users.splice(index, 1)[0];
-  res.json({ message: "User deleted successfully", user: deletedUser });
 });
 
-// Toggle User Status Endpoint
-app.put("/users/:id/toggle-status", (req, res) => {
-  const { id } = req.params;
-  const index = users.findIndex((user) => user.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "User not found" });
-  }
+// Endpoint to edit a user
+app.put("/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedUser = req.body;
 
-  // Toggle user status
-  users[index].status = !users[index].status;
-  res.json({
-    message: "User status toggled successfully",
-    user: users[index],
-  });
+    const updatedUserMongo = await User.findOneAndUpdate({ id }, updatedUser, {
+      new: true,
+    });
+
+    const index = users.findIndex((user) => user.id === id);
+    if (index !== -1) {
+      users[index] = updatedUser; // Update in-memory user (optional)
+    }
+
+    res.json({
+      message: "User data updated successfully",
+      user: updatedUserMongo,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint to delete a user
+app.delete("/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await User.findOneAndDelete({ id }); // Delete from MongoDB
+
+    const index = users.findIndex((user) => user.id === id);
+    if (index !== -1) {
+      const deletedUser = users.splice(index, 1)[0]; // Delete from in-memory (optional)
+      res.json({ message: "User deleted successfully", user: deletedUser });
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint to toggle user status
+app.put("/users/:id/toggle-status", async (req, res) => {
+  try {
+    const { id } = req.params;
+    let users = await User.find();
+    const user = users.find((user) => user.id === id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Toggle status
+    user.status = !user.status;
+    await user.save();
+
+    res.json({
+      message: "User status toggled successfully",
+      user: user,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-app.post("/staffs", (req, res) => {
-  const newStaff = { ...req.body };
-  const user = users.find((user) => user.id === newStaff.userId);
-  
-  if (!user) {
-    return res.status(404).json({ error: "User not found" });
+// Endpoint to add a staff
+app.post("/staffs", async (req, res) => {
+  try {
+    const newStaff = new Staff({ ...req.body });
+    await newStaff.save(); // Save staff to MongoDB
+
+    staffs.push(newStaff); // Add staff to in-memory array (optional)
+
+    res.status(201).json({ message: "Staff added successfully", staff: newStaff });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  const currentStaffCount = staffs.filter(staff => staff.userId === newStaff.userId).length;
-
-  if (user.plan.features.limitations.staffs === currentStaffCount) {
-    return res.status(403).json({ error: "Limit has been reached" });
-  }
-
-  staffs.push(newStaff);
-  res.status(201).json({ message: "Staff added successfully", staff: newStaff });
 });
 
-// Get Staffs Endpoint
-app.get("/staffs", (req, res) => {
-  const { userId } = req.query;
-  res.json(staffs.filter((staff) => staff.userId === userId));
+// Endpoint to get staffs
+app.get("/staffs", async (req, res) => {
+  try {
+    let staffs = await Staff.find();
+    const { userId } = req.query;
+    let result;
+    if (userId) {
+      result = staffs.filter((staff) => staff.userId === userId);
+    } else {
+      result = staffs; // Return all staffs (in-memory)
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Edit Staff Endpoint
-app.put("/staffs/:id", (req, res) => {
-  const { id } = req.params;
-  const updatedStaff = req.body;
-  const index = staffs.findIndex((staffMember) => staffMember.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Staff member not found" });
+// Endpoint to edit a staff
+app.put("/staffs/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedStaff = req.body;
+
+    const updatedStaffMongo = await Staff.findOneAndUpdate({ id }, updatedStaff, {
+      new: true,
+    });
+
+    const index = staffs.findIndex((staff) => staff.id === id);
+    if (index !== -1) {
+      staffs[index] = updatedStaff; // Update in-memory staff (optional)
+    }
+
+    res.json({
+      message: "Staff data updated successfully",
+      staff: updatedStaffMongo,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  staffs[index] = updatedStaff;
-  res.json({
-    message: "Staff member data updated successfully",
-    staff: updatedStaff,
-  });
 });
 
-// Delete Staff Endpoint
-app.delete("/staffs/:id", (req, res) => {
-  const { id } = req.params;
-  const index = staffs.findIndex((staffMember) => staffMember.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Staff member not found" });
-  }
+// Endpoint to delete a staff
+app.delete("/staffs/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  const deletedStaff = staffs.splice(index, 1)[0];
-  res.json({
-    message: "Staff member deleted successfully",
-    staff: deletedStaff,
-  });
+    await Staff.findOneAndDelete({ id }); // Delete from MongoDB
+
+    const index = staffs.findIndex((staff) => staff.id === id);
+    if (index !== -1) {
+      const deletedStaff = staffs.splice(index, 1)[0]; // Delete from in-memory (optional)
+      res.json({ message: "Staff deleted successfully", staff: deletedStaff });
+    } else {
+      res.status(404).json({ error: "Staff not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Toggle Status Endpoint
-app.put("/staffs/:id/toggle-status", (req, res) => {
-  const { id } = req.params;
-  const index = staffs.findIndex((staffMember) => staffMember.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Staff member not found" });
+// Endpoint to toggle staff status
+app.put("/staffs/:id/toggle-status", async (req, res) => {
+  try {
+    const { id } = req.params;
+    let staffs = await Staff.find();
+    const staff = staffs.find((staff) => staff.id === id);
+    if (!staff) {
+      return res.status(404).json({ error: "Staff not found" });
+    }
+
+    // Toggle status
+    staff.status = !staff.status;
+    await staff.save();
+
+    res.json({
+      message: "Staff status toggled successfully",
+      staff: staff,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  // Toggle staff status
-  staffs[index].status = !staffs[index].status;
-  res.json({
-    message: "Staff member status toggled successfully",
-    staff: staffs[index],
-  });
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
@@ -702,7 +820,10 @@ app.post("/cows", (req, res) => {
   if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
-  if (user.plan.features.limitations.cows === cows.filter(cow => cow.userId === newCow.userId).length) {
+  if (
+    user.plan.features.limitations.cows ===
+    cows.filter((cow) => cow.userId === newCow.userId).length
+  ) {
     return res.status(403).json({ error: "Plan cow limitation reached" });
   }
   cows.push(newCow);
@@ -768,7 +889,10 @@ app.post("/calves", (req, res) => {
   if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
-  if (user.plan.features.limitations.calves === calves.filter(calf => calf.userId === newCalf.userId).length) {
+  if (
+    user.plan.features.limitations.calves ===
+    calves.filter((calf) => calf.userId === newCalf.userId).length
+  ) {
     return res.status(403).json({ error: "Plan calf limitation reached" });
   }
   calves.push(newCalf);
@@ -925,7 +1049,9 @@ app.delete("/sales/:id", (req, res) => {
 app.post("/expenses", (req, res) => {
   const newExpense = { ...req.body };
   expenses.push(newExpense);
-  res.status(201).json({ message: "Expense added successfully", expense: newExpense });
+  res
+    .status(201)
+    .json({ message: "Expense added successfully", expense: newExpense });
 });
 
 // Get Expenses Endpoint
@@ -957,7 +1083,10 @@ app.delete("/expenses/:id", (req, res) => {
     return res.status(404).json({ error: "Expense not found" });
   }
   const deletedExpense = expenses.splice(index, 1)[0];
-  res.json({ message: "Expense deleted successfully", expense: deletedExpense });
+  res.json({
+    message: "Expense deleted successfully",
+    expense: deletedExpense,
+  });
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
