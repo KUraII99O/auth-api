@@ -147,6 +147,8 @@ const User = mongoose.model("User", {
 });
 
 const Employee = require('./modles/Employee'); // Adjusted path
+const Milk = require('./modles/Milk'); // Adjusted path
+const Staff = require('./modles/Staff'); // Adjusted path
 
 const users = [
   {
@@ -169,25 +171,7 @@ users
       .catch((err) => console.error("Error saving user to MongoDB", err));
   });
 
-  const Staff = mongoose.model("Staff", {
-    id: { type: String, required: true }, // Ensure id is a string
-    name: String,
-    email: String,
-    mobile: String,
-    designation: String,
-    joiningDate: String,
-    permanentAddress: String,
-    nid: String,
-    image: String,
-    userType: String,
-    presentAddress: String,
-    basicSalary: String,
-    grossSalary: String,
-    resignDate: String,
-    status: Boolean,
-    userId: String,
-  });
-
+   
 app.post("/register", async (req, res) => {
   const { email, password, planId, username } = req.body;
   const userExists = users.some((u) => u.email === email);
@@ -384,10 +368,9 @@ app.put("/users/:id/toggle-status", async (req, res) => {
 // Endpoint to add a staff
 app.post("/staffs", async (req, res) => {
   try {
-    const newStaff = new Staff({ ...req.body });
+    const newStaff = new Staff({ id: uuidv4(), ...req.body });
     await newStaff.save(); // Save staff to MongoDB
-
-    staffs.push(newStaff); // Add staff to in-memory array (optional)
+    staffs.push(newStaff); // Add staff to in-memory storage
 
     res.status(201).json({ message: "Staff added successfully", staff: newStaff });
   } catch (error) {
@@ -398,13 +381,13 @@ app.post("/staffs", async (req, res) => {
 // Endpoint to get staffs
 app.get("/staffs", async (req, res) => {
   try {
-    let staffs = await Staff.find();
+    const staffsFromDB = await Staff.find();
     const { userId } = req.query;
     let result;
     if (userId) {
-      result = staffs.filter((staff) => staff.userId === userId);
+      result = staffsFromDB.filter((staff) => staff.userId === userId);
     } else {
-      result = staffs; // Return all staffs (in-memory)
+      result = staffsFromDB; // Return all staffs
     }
     res.json(result);
   } catch (error) {
@@ -424,7 +407,7 @@ app.put("/staffs/:id", async (req, res) => {
 
     const index = staffs.findIndex((staff) => staff.id === id);
     if (index !== -1) {
-      staffs[index] = updatedStaff; // Update in-memory staff (optional)
+      staffs[index] = updatedStaffMongo; // Update in-memory storage
     }
 
     res.json({
@@ -441,14 +424,18 @@ app.delete("/staffs/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    await Staff.findOneAndDelete({ id }); // Delete from MongoDB
+    const deletedStaff = await Staff.findOneAndDelete({ id }); // Delete from MongoDB
 
-    const index = staffs.findIndex((staff) => staff.id === id);
-    if (index !== -1) {
-      const deletedStaff = staffs.splice(index, 1)[0]; // Delete from in-memory (optional)
-      res.json({ message: "Staff deleted successfully", staff: deletedStaff });
+    if (deletedStaff) {
+      const index = staffs.findIndex((staff) => staff.id === id);
+      if (index !== -1) {
+        const deletedStaffInMemory = staffs.splice(index, 1)[0]; // Delete from in-memory storage
+        res.json({ message: "Staff deleted successfully", staff: deletedStaffInMemory });
+      } else {
+        res.status(404).json({ error: "Staff not found in in-memory storage" });
+      }
     } else {
-      res.status(404).json({ error: "Staff not found" });
+      res.status(404).json({ error: "Staff not found in MongoDB" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -478,11 +465,14 @@ app.put("/staffs/:id/toggle-status", async (req, res) => {
   }
 });
 
+
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+// Endpoint to add a new employee
 app.post("/employees", async (req, res) => {
   try {
-    const newEmployee = new Employee({ ...req.body });
+    const newEmployee = new Employee({ id: uuidv4(), ...req.body });
     await newEmployee.save(); // Save employee to MongoDB
+    employees.push(newEmployee); // Add to in-memory storage
 
     res.status(201).json({ message: "Employee added successfully", employee: newEmployee });
   } catch (error) {
@@ -493,13 +483,13 @@ app.post("/employees", async (req, res) => {
 // Endpoint to get employees
 app.get("/employees", async (req, res) => {
   try {
-    const employees = await Employee.find();
+    const employeesFromDB = await Employee.find();
     const { userId } = req.query;
     let result;
     if (userId) {
-      result = employees.filter((employee) => employee.userId === userId);
+      result = employeesFromDB.filter((employee) => employee.userId === userId);
     } else {
-      result = employees; // Return all employees
+      result = employeesFromDB; // Return all employees
     }
     res.json(result);
   } catch (error) {
@@ -517,6 +507,11 @@ app.put("/employees/:id", async (req, res) => {
       new: true,
     });
 
+    const index = employees.findIndex((employee) => employee.id === id);
+    if (index !== -1) {
+      employees[index] = updatedEmployeeMongo; // Update in-memory storage
+    }
+
     res.json({
       message: "Employee data updated successfully",
       employee: updatedEmployeeMongo,
@@ -531,14 +526,18 @@ app.delete("/employees/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    await Employee.findOneAndDelete({ id }); // Delete from MongoDB
+    const deletedEmployee = await Employee.findOneAndDelete({ id }); // Delete from MongoDB
 
-    const index = employees.findIndex((employee) => employee.id === id);
-    if (index !== -1) {
-      const deletedEmployee = employees.splice(index, 1)[0]; // Delete from in-memory (optional)
-      res.json({ message: "Employee deleted successfully", employee: deletedEmployee });
+    if (deletedEmployee) {
+      const index = employees.findIndex((employee) => employee.id === id);
+      if (index !== -1) {
+        const deletedEmployeeInMemory = employees.splice(index, 1)[0]; // Delete from in-memory storage
+        res.json({ message: "Employee deleted successfully", employee: deletedEmployeeInMemory });
+      } else {
+        res.status(404).json({ error: "Employee not found in in-memory storage" });
+      }
     } else {
-      res.status(404).json({ error: "Employee not found" });
+      res.status(404).json({ error: "Employee not found in MongoDB" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -546,44 +545,77 @@ app.delete("/employees/:id", async (req, res) => {
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-// Add Milk Endpoint
-app.post("/milks", (req, res) => {
-  const newMilk = { ...req.body };
-  milks.push(newMilk);
-  res.status(201).json({ message: "Milk added successfully", milk: newMilk });
-});
+// Endpoint to add a new milk
+app.post("/milks", async (req, res) => {
+  try {
+    const newMilk = new Milk({ ...req.body });
+    await newMilk.save(); // Save milk to MongoDB
+    milks.push(newMilk); // Add to in-memory storage
 
-// Get Milks Endpoint
-app.get("/milks", (req, res) => {
-  const { userId } = req.query;
-  res.json(milks.filter((milk) => milk.userId === userId));
-});
-
-// Edit Milk Endpoint
-app.put("/milks/:id", (req, res) => {
-  const { id } = req.params;
-  const updatedMilk = req.body;
-  const index = milks.findIndex((milk) => milk.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Milk record not found" });
+    res.status(201).json({ message: "Milk added successfully", milk: newMilk });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  milks[index] = updatedMilk;
-  res.json({
-    message: "Milk record updated successfully",
-    milk: updatedMilk,
-  });
 });
 
-// Delete Milk Endpoint
-app.delete("/milks/:id", (req, res) => {
-  const { id } = req.params;
-  const index = milks.findIndex((milk) => milk.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Milk record not found" });
+// Endpoint to get milks
+app.get("/milks", async (req, res) => {
+  try {
+    const milksFromDB = await Milk.find();
+    const { userId } = req.query;
+    let result;
+    if (userId) {
+      result = milksFromDB.filter((milk) => milk.userId === userId);
+    } else {
+      result = milksFromDB; // Return all milks
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
+});
 
-  const deletedMilk = milks.splice(index, 1)[0];
-  res.json({ message: "Milk record deleted successfully", milk: deletedMilk });
+// Endpoint to edit a milk
+app.put("/milks/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedMilk = req.body;
+
+    const updatedMilkMongo = await Milk.findOneAndUpdate({ id }, updatedMilk, {
+      new: true,
+    });
+
+    const index = milks.findIndex((milk) => milk.id === id);
+    if (index !== -1) {
+      milks[index] = updatedMilkMongo; // Update in-memory storage
+    }
+
+    res.json({
+      message: "Milk data updated successfully",
+      milk: updatedMilkMongo,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint to delete a milk
+app.delete("/milks/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedMilk = await Milk.findOneAndDelete({ id }); // Delete from MongoDB
+
+    const index = milks.findIndex((milk) => milk.id === id);
+    if (index !== -1) {
+      const deletedMilkInMemory = milks.splice(index, 1)[0]; // Delete from in-memory storage
+      res.json({ message: "Milk deleted successfully", milk: deletedMilkInMemory });
+    } else {
+      res.status(404).json({ error: "Milk not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
