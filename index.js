@@ -125,7 +125,7 @@ function generateInvoice(user) {
 }
 
 const User = mongoose.model("User", {
-  id: { type: String, required: true }, // Ensure id is a string
+  id: { type: String }, // Ensure id is a string
   email: String,
   username: String,
   password: String,
@@ -145,6 +145,8 @@ const User = mongoose.model("User", {
   resignDate: Date,
   status: Boolean,
 });
+
+const Employee = require('./modles/Employee'); // Adjusted path
 
 const users = [
   {
@@ -243,6 +245,7 @@ app.post("/register", async (req, res) => {
   });
 });
 
+
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -308,6 +311,8 @@ app.get("/users", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
 
 // Endpoint to edit a user
 app.put("/users/:id", async (req, res) => {
@@ -474,48 +479,70 @@ app.put("/staffs/:id/toggle-status", async (req, res) => {
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-app.post("/employees", (req, res) => {
-  const newEmployee = { ...req.body };
-  employees.push(newEmployee);
-  res
-    .status(201)
-    .json({ message: "Employee added successfully", employee: newEmployee });
-});
+app.post("/employees", async (req, res) => {
+  try {
+    const newEmployee = new Employee({ ...req.body });
+    await newEmployee.save(); // Save employee to MongoDB
 
-// Get Employees Endpoint
-app.get("/employees", (req, res) => {
-  const { userId } = req.query;
-  res.json(employees.filter((employee) => employee.userId === userId));
-});
-
-// Edit Employee Endpoint
-app.put("/employees/:id", (req, res) => {
-  const { id } = req.params;
-  const updatedEmployee = req.body;
-  const index = employees.findIndex((employee) => employee.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Employee not found" });
+    res.status(201).json({ message: "Employee added successfully", employee: newEmployee });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  employees[index] = updatedEmployee;
-  res.json({
-    message: "Employee data updated successfully",
-    employee: updatedEmployee,
-  });
 });
 
-// Delete Employee Endpoint
-app.delete("/employees/:id", (req, res) => {
-  const { id } = req.params;
-  const index = employees.findIndex((employee) => employee.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Employee not found" });
+// Endpoint to get employees
+app.get("/employees", async (req, res) => {
+  try {
+    const employees = await Employee.find();
+    const { userId } = req.query;
+    let result;
+    if (userId) {
+      result = employees.filter((employee) => employee.userId === userId);
+    } else {
+      result = employees; // Return all employees
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
+});
 
-  const deletedEmployee = employees.splice(index, 1)[0];
-  res.json({
-    message: "Employee deleted successfully",
-    employee: deletedEmployee,
-  });
+// Endpoint to edit an employee
+app.put("/employees/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedEmployee = req.body;
+
+    const updatedEmployeeMongo = await Employee.findOneAndUpdate({ id }, updatedEmployee, {
+      new: true,
+    });
+
+    res.json({
+      message: "Employee data updated successfully",
+      employee: updatedEmployeeMongo,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint to delete an employee
+app.delete("/employees/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await Employee.findOneAndDelete({ id }); // Delete from MongoDB
+
+    const index = employees.findIndex((employee) => employee.id === id);
+    if (index !== -1) {
+      const deletedEmployee = employees.splice(index, 1)[0]; // Delete from in-memory (optional)
+      res.json({ message: "Employee deleted successfully", employee: deletedEmployee });
+    } else {
+      res.status(404).json({ error: "Employee not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
