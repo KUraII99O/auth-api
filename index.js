@@ -150,6 +150,7 @@ const Employee = require('./modles/Employee'); // Adjusted path
 const Milk = require('./modles/Milk'); // Adjusted path
 const Staff = require('./modles/Staff'); // Adjusted path
 const MilkSale = require('./modles/MilkSale'); // Adjusted path
+const CowFeed = require('./modles/CowFeed'); // Adjusted path
 
 const users = [
   {
@@ -700,49 +701,74 @@ app.delete("/milksales/:id", async (req, res) => {
   }
 });
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+// Endpoint to add cow feed data
+app.post("/cowFeeds", async (req, res) => {
+  try {
+    const newCowFeed = new CowFeed({
+      id: req.body.id, // Use custom id field
+      date: new Date().toLocaleDateString(),
+      ...req.body
+    });
 
-app.post("/cowFeeds", (req, res) => {
-  const newcowFeeds = req.body;
-  newcowFeeds.date = new Date().toLocaleDateString(); // Adding the current date
+    await newCowFeed.save(); // Save cow feed data to MongoDB
 
-  cowFeeds.push(newcowFeeds);
-  res
-    .status(201)
-    .json({ message: "Milk data collected successfully", data: newcowFeeds });
-});
-
-// Get all collected milk data
-app.get("/cowFeeds", (req, res) => {
-  res.json(cowFeeds);
-});
-
-// Edit Milk Data Endpoint (if needed)
-app.put("/cowFeeds/:id", (req, res) => {
-  const { id } = req.params;
-  const updatedcowFeeds = req.body;
-  const index = cowFeeds.findIndex((data) => data.id === parseInt(id));
-  if (index === -1) {
-    return res.status(404).json({ error: "cow Feeds not found" });
+    res.status(201).json({ message: "Cow feed data collected successfully", data: newCowFeed });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  cowFeeds[index] = updatedcowFeeds;
-  res.json({
-    message: "cow Feeds data updated successfully",
-    data: updatedcowFeeds,
-  });
 });
 
-// Delete Milk Data Endpoint (if needed)
-app.delete("/cowFeeds/:id", (req, res) => {
-  const { id } = req.params;
-  const index = cowFeeds.findIndex((data) => data.id === parseInt(id));
-  if (index === -1) {
-    return res.status(404).json({ error: "Milk data not found" });
+// Get all collected cow feed data
+app.get("/cowFeeds", async (req, res) => {
+  try {
+    const cowFeedsFromDB = await CowFeed.find();
+    res.json(cowFeeds.concat(cowFeedsFromDB)); // Merge in-memory and MongoDB data
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  const deletedcowFeeds = cowFeeds.splice(index, 1)[0];
-  res.json({
-    message: "cow Feeds deleted successfully",
-    data: deletedcowFeeds,
-  });
+});
+
+// Edit Cow Feed Data Endpoint
+app.put("/cowFeeds/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedCowFeed = req.body;
+
+    const updatedCowFeedMongo = await CowFeed.findOneAndUpdate({ id: id }, updatedCowFeed, {
+      new: true,
+    });
+
+    if (!updatedCowFeedMongo) {
+      return res.status(404).json({ error: "Cow feed data not found" });
+    }
+
+    res.json({
+      message: "Cow feed data updated successfully",
+      data: updatedCowFeedMongo,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete Cow Feed Data Endpoint
+app.delete("/cowFeeds/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedCowFeedMongo = await CowFeed.findOneAndDelete({ id: id });
+
+    if (!deletedCowFeedMongo) {
+      return res.status(404).json({ error: "Cow feed data not found" });
+    }
+
+    res.json({
+      message: "Cow feed data deleted successfully",
+      data: deletedCowFeedMongo,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
