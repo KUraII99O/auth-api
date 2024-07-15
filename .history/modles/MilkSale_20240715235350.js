@@ -23,5 +23,3 @@ const milkSaleSchema = new mongoose.Schema({
   });
   
   const MilkSale = mongoose.model('MilkSale', milkSaleSchema);
-
-  module.exports = MilkSale; // Export the model for use in other modules

@@ -149,6 +149,7 @@ const User = mongoose.model("User", {
 const Employee = require('./modles/Employee'); // Adjusted path
 const Milk = require('./modles/Milk'); // Adjusted path
 const Staff = require('./modles/Staff'); // Adjusted path
+const MilkSale = require('./modles/MilkSale'); // Adjusted path
 
 const users = [
   {
@@ -619,48 +620,84 @@ app.delete("/milks/:id", async (req, res) => {
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-app.post("/milksales", (req, res) => {
-  const newMilkSale = { ...req.body };
-  milksales.push(newMilkSale);
-  res
-    .status(201)
-    .json({ message: "Milk sale added successfully", milkSale: newMilkSale });
+// Endpoint to add a milk sale
+app.post("/milksales", async (req, res) => {
+  try {
+    const newMilkSale = new MilkSale({ id: uuidv4(), ...req.body });
+    await newMilkSale.save(); // Save milk sale to MongoDB
+
+    milksales.push(newMilkSale); // Add to in-memory storage
+
+    res.status(201).json({ message: "Milk sale added successfully", milkSale: newMilkSale });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Get Milk Sales Endpoint
-app.get("/milksales", (req, res) => {
-  const { userId } = req.query;
-  res.json(milksales.filter((milkSale) => milkSale.userId === userId));
+app.get("/milksales", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    let milkSales;
+    if (userId) {
+      milkSales = await MilkSale.find({ userId });
+    } else {
+      milkSales = await MilkSale.find();
+    }
+    res.json(milkSales.concat(milksales.filter((milkSale) => !userId || milkSale.userId === userId)));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Edit Milk Sale Endpoint
-app.put("/milksales/:id", (req, res) => {
-  const { id } = req.params;
-  const updatedMilkSale = req.body;
-  const index = milksales.findIndex((milkSale) => milkSale.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Milk sale record not found" });
+app.put("/milksales/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedMilkSale = req.body;
+
+    const updatedMilkSaleMongo = await MilkSale.findOneAndUpdate({ id }, updatedMilkSale, {
+      new: true,
+    });
+
+    const index = milksales.findIndex((milkSale) => milkSale.id === id);
+    if (index !== -1) {
+      milksales[index] = updatedMilkSaleMongo; // Update in-memory storage
+    }
+
+    res.json({
+      message: "Milk sale record updated successfully",
+      milkSale: updatedMilkSaleMongo,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  milksales[index] = updatedMilkSale;
-  res.json({
-    message: "Milk sale record updated successfully",
-    milkSale: updatedMilkSale,
-  });
 });
 
 // Delete Milk Sale Endpoint
-app.delete("/milksales/:id", (req, res) => {
-  const { id } = req.params;
-  const index = milksales.findIndex((milkSale) => milkSale.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Milk sale record not found" });
-  }
+app.delete("/milksales/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  const deletedMilkSale = milksales.splice(index, 1)[0];
-  res.json({
-    message: "Milk sale record deleted successfully",
-    milkSale: deletedMilkSale,
-  });
+    const deletedMilkSaleMongo = await MilkSale.findOneAndDelete({ id });
+
+    let deletedMilkSaleInMemory = null;
+    const index = milksales.findIndex((milkSale) => milkSale.id === id);
+    if (index !== -1) {
+      deletedMilkSaleInMemory = milksales.splice(index, 1)[0]; // Delete from in-memory storage
+    }
+
+    if (!deletedMilkSaleMongo && !deletedMilkSaleInMemory) {
+      return res.status(404).json({ error: "Milk sale record not found" });
+    }
+
+    res.json({
+      message: "Milk sale record deleted successfully",
+      milkSale: deletedMilkSaleMongo || deletedMilkSaleInMemory,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 

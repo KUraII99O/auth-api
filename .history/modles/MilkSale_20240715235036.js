@@ -1,8 +1,3 @@
-const mongoose = require('mongoose');
-
-
-
-
 const milkSaleSchema = new mongoose.Schema({
     id: String, // Custom id field
     userId: String,
@@ -16,12 +11,10 @@ const milkSaleSchema = new mongoose.Schema({
     price: String,
     due: String,
     paid: String,
-    date: String,
+    String: String,
     soldBy: String,
     invoice: String,
     // Add other fields as needed
   });
   
   const MilkSale = mongoose.model('MilkSale', milkSaleSchema);
-
-  module.exports = MilkSale; // Export the model for use in other modules
