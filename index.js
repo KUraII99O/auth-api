@@ -153,6 +153,7 @@ const MilkSale = require("./modles/MilkSale"); // Adjusted path
 const CowFeed = require("./modles/CowFeed"); // Adjusted path
 const RoutineMonitor = require("./modles/Routine"); // Adjusted path
 const VaccineMonitor = require("./modles/vaccines"); // Adjusted path
+const Stall = require("./modles/Stalls"); // Adjusted path
 
 const users = [
   {
@@ -954,61 +955,92 @@ app.delete("/vaccines/:id", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-app.post("/stalls", (req, res) => {
-  const newstalls = req.body;
+// Add Stall Endpoint
+app.post("/stalls", async (req, res) => {
+  const newStall = { ...req.body, date: new Date().toLocaleDateString() }; // Adding the current date
 
-  newstalls.date = new Date().toLocaleDateString(); // Adding the current date
-  stalls.push(newstalls);
+  // In-memory storage
+  stalls.push(newStall);
+
+  // MongoDB storage
+  const stall = new Stall(newStall);
+  await stall.save();
+
   res.status(201).json({
-    message: "routine Monitors collected successfully",
-    data: newstalls,
+    message: "Stall added successfully",
+    data: newStall,
   });
 });
 
-app.get("/stalls", (req, res) => {
-  res.json(stalls);
+// Get Stalls Endpoint
+app.get("/stalls", async (req, res) => {
+  const dbResults = await Stall.find();
+  res.json(dbResults);
 });
 
-// Edit stall Data Endpoint (if needed)
-app.put("/stalls/:id", (req, res) => {
+// Edit Stall Data Endpoint
+app.put("/stalls/:id", async (req, res) => {
   const { id } = req.params;
-  const updatedstalls = req.body;
+  const updatedStall = req.body;
+
+  // In-memory update
   const index = stalls.findIndex((data) => data.id === parseInt(id));
-  if (index === -1) {
-    return res.status(404).json({ error: "stalls not found" });
+  if (index !== -1) {
+    stalls[index] = updatedStall;
   }
-  stalls[index] = updatedstalls;
+
+  // MongoDB update
+  const stall = await Stall.findOneAndUpdate({ id: parseInt(id) }, updatedStall, { new: true });
+  if (!stall) {
+    return res.status(404).json({ error: "Stall not found" });
+  }
+
   res.json({
-    message: "stalls  data updated successfully",
-    data: updatedstalls,
+    message: "Stall data updated successfully",
+    data: updatedStall,
   });
 });
 
-// Delete stall Data Endpoint (if needed)
-app.delete("/stalls/:id", (req, res) => {
+// Delete Stall Data Endpoint
+app.delete("/stalls/:id", async (req, res) => {
   const { id } = req.params;
+
+  // In-memory delete
   const index = stalls.findIndex((data) => data.id === parseInt(id));
-  if (index === -1) {
-    return res.status(404).json({ error: "stalls data not found" });
+  if (index !== -1) {
+    stalls.splice(index, 1);
   }
 
-  const deletedstalls = stalls.splice(index, 1)[0];
-  res.json({ message: "stalls deleted successfully", data: deletedstalls });
+  // MongoDB delete
+  const stall = await Stall.findOneAndDelete({ id: parseInt(id) });
+  if (!stall) {
+    return res.status(404).json({ error: "Stall not found" });
+  }
+
+  res.json({ message: "Stall deleted successfully", data: stall });
 });
 
-app.put("/stalls/:id/toggle-status", (req, res) => {
+// Toggle Stall Status Endpoint
+app.put("/stalls/:id/toggle-status", async (req, res) => {
   const { id } = req.params;
+
+  // In-memory update
   const index = stalls.findIndex((stall) => stall.id === parseInt(id));
-
-  if (index === -1) {
-    return res.status(404).json({ error: "stall not found" });
+  if (index !== -1) {
+    stalls[index].status = !stalls[index].status;
   }
 
-  // Toggle stall status
-  stalls[index].status = !stalls[index].status;
+  // MongoDB update
+  const stall = await Stall.findOne({ id: parseInt(id) });
+  if (!stall) {
+    return res.status(404).json({ error: "Stall not found" });
+  }
+  stall.status = !stall.status;
+  await stall.save();
+
   res.json({
-    message: "stall status toggled successfully",
-    stall: stalls[index],
+    message: "Stall status toggled successfully",
+    stall: stall,
   });
 });
 
