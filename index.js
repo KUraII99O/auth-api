@@ -146,11 +146,13 @@ const User = mongoose.model("User", {
   status: Boolean,
 });
 
-const Employee = require('./modles/Employee'); // Adjusted path
-const Milk = require('./modles/Milk'); // Adjusted path
-const Staff = require('./modles/Staff'); // Adjusted path
-const MilkSale = require('./modles/MilkSale'); // Adjusted path
-const CowFeed = require('./modles/CowFeed'); // Adjusted path
+const Employee = require("./modles/Employee"); // Adjusted path
+const Milk = require("./modles/Milk"); // Adjusted path
+const Staff = require("./modles/Staff"); // Adjusted path
+const MilkSale = require("./modles/MilkSale"); // Adjusted path
+const CowFeed = require("./modles/CowFeed"); // Adjusted path
+const RoutineMonitor = require("./modles/Routine"); // Adjusted path
+const VaccineMonitor = require("./modles/vaccines"); // Adjusted path
 
 const users = [
   {
@@ -173,7 +175,6 @@ users
       .catch((err) => console.error("Error saving user to MongoDB", err));
   });
 
-   
 app.post("/register", async (req, res) => {
   const { email, password, planId, username } = req.body;
   const userExists = users.some((u) => u.email === email);
@@ -230,7 +231,6 @@ app.post("/register", async (req, res) => {
     invoice: newInvoice, // Return invoice only if created
   });
 });
-
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -297,8 +297,6 @@ app.get("/users", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-
 
 // Endpoint to edit a user
 app.put("/users/:id", async (req, res) => {
@@ -374,7 +372,9 @@ app.post("/staffs", async (req, res) => {
     await newStaff.save(); // Save staff to MongoDB
     staffs.push(newStaff); // Add staff to in-memory storage
 
-    res.status(201).json({ message: "Staff added successfully", staff: newStaff });
+    res
+      .status(201)
+      .json({ message: "Staff added successfully", staff: newStaff });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -403,9 +403,13 @@ app.put("/staffs/:id", async (req, res) => {
     const { id } = req.params;
     const updatedStaff = req.body;
 
-    const updatedStaffMongo = await Staff.findOneAndUpdate({ id }, updatedStaff, {
-      new: true,
-    });
+    const updatedStaffMongo = await Staff.findOneAndUpdate(
+      { id },
+      updatedStaff,
+      {
+        new: true,
+      }
+    );
 
     const index = staffs.findIndex((staff) => staff.id === id);
     if (index !== -1) {
@@ -432,7 +436,10 @@ app.delete("/staffs/:id", async (req, res) => {
       const index = staffs.findIndex((staff) => staff.id === id);
       if (index !== -1) {
         const deletedStaffInMemory = staffs.splice(index, 1)[0]; // Delete from in-memory storage
-        res.json({ message: "Staff deleted successfully", staff: deletedStaffInMemory });
+        res.json({
+          message: "Staff deleted successfully",
+          staff: deletedStaffInMemory,
+        });
       } else {
         res.status(404).json({ error: "Staff not found in in-memory storage" });
       }
@@ -467,7 +474,6 @@ app.put("/staffs/:id/toggle-status", async (req, res) => {
   }
 });
 
-
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Endpoint to add a new employee
 app.post("/employees", async (req, res) => {
@@ -476,7 +482,9 @@ app.post("/employees", async (req, res) => {
     await newEmployee.save(); // Save employee to MongoDB
     employees.push(newEmployee); // Add to in-memory storage
 
-    res.status(201).json({ message: "Employee added successfully", employee: newEmployee });
+    res
+      .status(201)
+      .json({ message: "Employee added successfully", employee: newEmployee });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -505,9 +513,13 @@ app.put("/employees/:id", async (req, res) => {
     const { id } = req.params;
     const updatedEmployee = req.body;
 
-    const updatedEmployeeMongo = await Employee.findOneAndUpdate({ id }, updatedEmployee, {
-      new: true,
-    });
+    const updatedEmployeeMongo = await Employee.findOneAndUpdate(
+      { id },
+      updatedEmployee,
+      {
+        new: true,
+      }
+    );
 
     const index = employees.findIndex((employee) => employee.id === id);
     if (index !== -1) {
@@ -534,9 +546,14 @@ app.delete("/employees/:id", async (req, res) => {
       const index = employees.findIndex((employee) => employee.id === id);
       if (index !== -1) {
         const deletedEmployeeInMemory = employees.splice(index, 1)[0]; // Delete from in-memory storage
-        res.json({ message: "Employee deleted successfully", employee: deletedEmployeeInMemory });
+        res.json({
+          message: "Employee deleted successfully",
+          employee: deletedEmployeeInMemory,
+        });
       } else {
-        res.status(404).json({ error: "Employee not found in in-memory storage" });
+        res
+          .status(404)
+          .json({ error: "Employee not found in in-memory storage" });
       }
     } else {
       res.status(404).json({ error: "Employee not found in MongoDB" });
@@ -611,7 +628,10 @@ app.delete("/milks/:id", async (req, res) => {
     const index = milks.findIndex((milk) => milk.id === id);
     if (index !== -1) {
       const deletedMilkInMemory = milks.splice(index, 1)[0]; // Delete from in-memory storage
-      res.json({ message: "Milk deleted successfully", milk: deletedMilkInMemory });
+      res.json({
+        message: "Milk deleted successfully",
+        milk: deletedMilkInMemory,
+      });
     } else {
       res.status(404).json({ error: "Milk not found" });
     }
@@ -629,7 +649,9 @@ app.post("/milksales", async (req, res) => {
 
     milksales.push(newMilkSale); // Add to in-memory storage
 
-    res.status(201).json({ message: "Milk sale added successfully", milkSale: newMilkSale });
+    res
+      .status(201)
+      .json({ message: "Milk sale added successfully", milkSale: newMilkSale });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -645,7 +667,11 @@ app.get("/milksales", async (req, res) => {
     } else {
       milkSales = await MilkSale.find();
     }
-    res.json(milkSales.concat(milksales.filter((milkSale) => !userId || milkSale.userId === userId)));
+    res.json(
+      milkSales.concat(
+        milksales.filter((milkSale) => !userId || milkSale.userId === userId)
+      )
+    );
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -657,9 +683,13 @@ app.put("/milksales/:id", async (req, res) => {
     const { id } = req.params;
     const updatedMilkSale = req.body;
 
-    const updatedMilkSaleMongo = await MilkSale.findOneAndUpdate({ id }, updatedMilkSale, {
-      new: true,
-    });
+    const updatedMilkSaleMongo = await MilkSale.findOneAndUpdate(
+      { id },
+      updatedMilkSale,
+      {
+        new: true,
+      }
+    );
 
     const index = milksales.findIndex((milkSale) => milkSale.id === id);
     if (index !== -1) {
@@ -707,12 +737,17 @@ app.post("/cowFeeds", async (req, res) => {
     const newCowFeed = new CowFeed({
       id: req.body.id, // Use custom id field
       date: new Date().toLocaleDateString(),
-      ...req.body
+      ...req.body,
     });
 
     await newCowFeed.save(); // Save cow feed data to MongoDB
 
-    res.status(201).json({ message: "Cow feed data collected successfully", data: newCowFeed });
+    res
+      .status(201)
+      .json({
+        message: "Cow feed data collected successfully",
+        data: newCowFeed,
+      });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -734,9 +769,13 @@ app.put("/cowFeeds/:id", async (req, res) => {
     const { id } = req.params;
     const updatedCowFeed = req.body;
 
-    const updatedCowFeedMongo = await CowFeed.findOneAndUpdate({ id: id }, updatedCowFeed, {
-      new: true,
-    });
+    const updatedCowFeedMongo = await CowFeed.findOneAndUpdate(
+      { id: id },
+      updatedCowFeed,
+      {
+        new: true,
+      }
+    );
 
     if (!updatedCowFeedMongo) {
       return res.status(404).json({ error: "Cow feed data not found" });
@@ -772,9 +811,13 @@ app.delete("/cowFeeds/:id", async (req, res) => {
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-app.post("/routines", (req, res) => {
+
+// Add Routine Monitor Endpoint
+app.post("/routines", async (req, res) => {
   const newRoutineMonitor = { ...req.body };
-  routineMonitors.push(newRoutineMonitor);
+  routineMonitors.push(newRoutineMonitor); // In-memory
+  const routineMonitor = new RoutineMonitor(newRoutineMonitor); // MongoDB
+  await routineMonitor.save();
   res.status(201).json({
     message: "Routine monitor added successfully",
     routineMonitor: newRoutineMonitor,
@@ -782,24 +825,38 @@ app.post("/routines", (req, res) => {
 });
 
 // Get Routine Monitors Endpoint
-app.get("/routines", (req, res) => {
+app.get("/routines", async (req, res) => {
   const { userId } = req.query;
-  res.json(
-    routineMonitors.filter((routineMonitor) => routineMonitor.userId === userId)
+  const memoryResults = routineMonitors.filter(
+    (routineMonitor) => routineMonitor.userId === userId
   );
+  const dbResults = await RoutineMonitor.find({ userId });
+  res.json([...memoryResults, ...dbResults]);
 });
 
 // Edit Routine Monitor Endpoint
-app.put("/routines/:id", (req, res) => {
+app.put("/routines/:id", async (req, res) => {
   const { id } = req.params;
   const updatedRoutineMonitor = req.body;
+
+  // In-memory update
   const index = routineMonitors.findIndex(
     (routineMonitor) => routineMonitor.id === id
   );
-  if (index === -1) {
+  if (index !== -1) {
+    routineMonitors[index] = updatedRoutineMonitor;
+  }
+
+  // MongoDB update
+  const routineMonitor = await RoutineMonitor.findOneAndUpdate(
+    { id },
+    updatedRoutineMonitor,
+    { new: true }
+  );
+  if (!routineMonitor) {
     return res.status(404).json({ error: "Routine monitor record not found" });
   }
-  routineMonitors[index] = updatedRoutineMonitor;
+
   res.json({
     message: "Routine monitor record updated successfully",
     routineMonitor: updatedRoutineMonitor,
@@ -807,27 +864,35 @@ app.put("/routines/:id", (req, res) => {
 });
 
 // Delete Routine Monitor Endpoint
-app.delete("/routines/:id", (req, res) => {
+app.delete("/routines/:id", async (req, res) => {
   const { id } = req.params;
+
+  // In-memory delete
   const index = routineMonitors.findIndex(
     (routineMonitor) => routineMonitor.id === id
   );
-  if (index === -1) {
+  if (index !== -1) {
+    routineMonitors.splice(index, 1);
+  }
+
+  // MongoDB delete
+  const routineMonitor = await RoutineMonitor.findOneAndDelete({ id });
+  if (!routineMonitor) {
     return res.status(404).json({ error: "Routine monitor record not found" });
   }
 
-  const deletedRoutineMonitor = routineMonitors.splice(index, 1)[0];
   res.json({
     message: "Routine monitor record deleted successfully",
-    routineMonitor: deletedRoutineMonitor,
+    routineMonitor,
   });
 });
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-
 // Add Vaccine Monitor Endpoint
-app.post("/vaccines", (req, res) => {
+app.post("/vaccines", async (req, res) => {
   const newVaccineMonitor = { ...req.body };
-  vaccineMonitors.push(newVaccineMonitor);
+  vaccineMonitors.push(newVaccineMonitor); // In-memory
+  const vaccineMonitor = new VaccineMonitor(newVaccineMonitor); // MongoDB
+  await vaccineMonitor.save();
   res.status(201).json({
     message: "Vaccine monitor added successfully",
     vaccineMonitor: newVaccineMonitor,
@@ -835,24 +900,30 @@ app.post("/vaccines", (req, res) => {
 });
 
 // Get Vaccine Monitors Endpoint
-app.get("/vaccines", (req, res) => {
+app.get("/vaccines", async (req, res) => {
   const { userId } = req.query;
-  res.json(
-    vaccineMonitors.filter((vaccineMonitor) => vaccineMonitor.userId === userId)
-  );
+  const memoryResults = vaccineMonitors.filter((vaccineMonitor) => vaccineMonitor.userId === userId);
+  const dbResults = await VaccineMonitor.find({ userId });
+  res.json([...memoryResults, ...dbResults]);
 });
 
 // Edit Vaccine Monitor Endpoint
-app.put("/vaccines/:id", (req, res) => {
+app.put("/vaccines/:id", async (req, res) => {
   const { id } = req.params;
   const updatedVaccineMonitor = req.body;
-  const index = vaccineMonitors.findIndex(
-    (vaccineMonitor) => vaccineMonitor.id === id
-  );
-  if (index === -1) {
+
+  // In-memory update
+  const index = vaccineMonitors.findIndex((vaccineMonitor) => vaccineMonitor.id === id);
+  if (index !== -1) {
+    vaccineMonitors[index] = updatedVaccineMonitor;
+  }
+
+  // MongoDB update
+  const vaccineMonitor = await VaccineMonitor.findOneAndUpdate({ id }, updatedVaccineMonitor, { new: true });
+  if (!vaccineMonitor) {
     return res.status(404).json({ error: "Vaccine monitor record not found" });
   }
-  vaccineMonitors[index] = updatedVaccineMonitor;
+
   res.json({
     message: "Vaccine monitor record updated successfully",
     vaccineMonitor: updatedVaccineMonitor,
@@ -860,21 +931,27 @@ app.put("/vaccines/:id", (req, res) => {
 });
 
 // Delete Vaccine Monitor Endpoint
-app.delete("/vaccines/:id", (req, res) => {
+app.delete("/vaccines/:id", async (req, res) => {
   const { id } = req.params;
-  const index = vaccineMonitors.findIndex(
-    (vaccineMonitor) => vaccineMonitor.id === id
-  );
-  if (index === -1) {
+
+  // In-memory delete
+  const index = vaccineMonitors.findIndex((vaccineMonitor) => vaccineMonitor.id === id);
+  if (index !== -1) {
+    vaccineMonitors.splice(index, 1);
+  }
+
+  // MongoDB delete
+  const vaccineMonitor = await VaccineMonitor.findOneAndDelete({ id });
+  if (!vaccineMonitor) {
     return res.status(404).json({ error: "Vaccine monitor record not found" });
   }
 
-  const deletedVaccineMonitor = vaccineMonitors.splice(index, 1)[0];
   res.json({
     message: "Vaccine monitor record deleted successfully",
-    vaccineMonitor: deletedVaccineMonitor,
+    vaccineMonitor,
   });
 });
+
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 app.post("/stalls", (req, res) => {
