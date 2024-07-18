@@ -154,6 +154,7 @@ const CowFeed = require("./modles/CowFeed"); // Adjusted path
 const RoutineMonitor = require("./modles/Routine"); // Adjusted path
 const VaccineMonitor = require("./modles/vaccines"); // Adjusted path
 const Stall = require("./modles/Stalls"); // Adjusted path
+const Cow = require("./modles/Cows"); // Adjusted path
 
 const users = [
   {
@@ -1045,71 +1046,109 @@ app.put("/stalls/:id/toggle-status", async (req, res) => {
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-app.post("/cows", (req, res) => {
-  const newCow = { ...req.body };
-  const user = users.find((user) => user.id === newCow.userId);
-  if (!user) {
-    return res.status(404).json({ error: "User not found" });
-  }
-  if (
-    user.plan.features.limitations.cows ===
-    cows.filter((cow) => cow.userId === newCow.userId).length
-  ) {
-    return res.status(403).json({ error: "Plan cow limitation reached" });
-  }
+// Add Cow Endpoint
+app.post("/cows", async (req, res) => {
+  const newCow = { ...req.body, date: new Date().toLocaleDateString() }; // Adding the current date
+
+  // In-memory storage
   cows.push(newCow);
-  res.status(201).json({ message: "Cow added successfully", cow: newCow });
+
+  // MongoDB storage
+  const cow = new Cow(newCow);
+  await cow.save();
+
+  res.status(201).json({
+    message: "Cow added successfully",
+    data: newCow,
+  });
 });
 
 // Get Cows Endpoint
-app.get("/cows", (req, res) => {
-  const { userId } = req.query;
-  res.json(cows.filter((cow) => cow.userId === userId));
+app.get("/cows", async (req, res) => {
+  const dbResults = await Cow.find();
+  res.json(dbResults);
 });
 
-// Edit Cow Endpoint
-app.put("/cows/:id", (req, res) => {
+// Edit Cow Data Endpoint
+app.put("/cows/:id", async (req, res) => {
   const { id } = req.params;
   const updatedCow = req.body;
-  const index = cows.findIndex((cow) => cow.id === id);
-  if (index === -1) {
+
+  // In-memory update
+  const index = cows.findIndex((data) => data.id === parseInt(id));
+  if (index !== -1) {
+    cows[index] = updatedCow;
+  }
+
+  // MongoDB update
+  const cow = await Cow.findOneAndUpdate({ id: id }, updatedCow, { new: true });
+  if (!cow) {
     return res.status(404).json({ error: "Cow not found" });
   }
-  cows[index] = updatedCow;
+
   res.json({
     message: "Cow data updated successfully",
-    cow: updatedCow,
+    data: updatedCow,
   });
 });
 
-// Delete Cow Endpoint
-app.delete("/cows/:id", (req, res) => {
+// Delete Cow Data Endpoint
+app.delete("/cows/:id", async (req, res) => {
   const { id } = req.params;
-  const index = cows.findIndex((cow) => cow.id === id);
-  if (index === -1) {
+
+  // In-memory delete
+  const index = cows.findIndex((data) => data.id === parseInt(id));
+  if (index !== -1) {
+    cows.splice(index, 1);
+  }
+
+  // MongoDB delete
+  const cow = await Cow.findOneAndDelete({ id: id });
+  if (!cow) {
     return res.status(404).json({ error: "Cow not found" });
   }
 
-  const deletedCow = cows.splice(index, 1)[0];
-  res.json({
-    message: "Cow deleted successfully",
-    cow: deletedCow,
-  });
+  res.json({ message: "Cow deleted successfully", data: cow });
 });
 
-// Toggle Status Endpoint
-app.put("/cows/:id/toggle-status", (req, res) => {
+// Toggle Cow Status Endpoint
+app.put("/cows/:id/toggle-status", async (req, res) => {
   const { id } = req.params;
-  const index = cows.findIndex((cow) => cow.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Cow not found" });
+
+  try {
+    // Find the cow by ID
+    const cow = await Cow.findOne({ id: id });
+    if (!cow) {
+      console.error(`Cow with ID ${id} not found in the database`);
+      return res.status(404).json({ error: "Cow not found" });
+    }
+
+    // Log the current status
+    console.log(`Current status of cow with ID ${id}:`, cow.status);
+
+    // Toggle the status field
+    cow.status = !cow.status;
+
+    // Save the updated cow back to the database
+    await cow.save();
+
+    // Log the updated status
+    console.log(`Updated status of cow with ID ${id}:`, cow.status);
+
+    // Optionally update the in-memory storage if used
+    const index = cows.findIndex((cow) => cow.id === parseInt(id));
+    if (index !== -1) {
+      cows[index].status = cow.status;
+    }
+
+    res.json({
+      message: "Cow status toggled successfully",
+      cow: cow,
+    });
+  } catch (error) {
+    console.error(`Error toggling status for cow with ID ${id}:`, error);
+    res.status(500).json({ error: "Internal server error" });
   }
-  // Toggle cow status
-  cows[index].status = !cows[index].status;
-  res.json({
-    message: "Cow status toggled successfully",
-    cow: cows[index],
-  });
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");

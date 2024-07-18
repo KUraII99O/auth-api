@@ -7,14 +7,13 @@ const CowFeedSchema = new mongoose.Schema({
   stallNo: { type: String },
   cowNumber: { type: String },
   note: { type: String },
-  informations: {
-    foodItem: { type: String },
-    quantity: { type: String },
-    feedingTime: { type: String },
-    unit: { type: String },
-    foodItem: { type: String },
-    userId: { type: String },
-  },
+  informations
+  foodItem: { type: String },
+  quantity: { type: String },
+  feedingTime: { type: String },
+  unit: { type: String },
+  foodItem: { type: String },
+  userId: { type: String },
 });
 
 // Register the CowFeed model
