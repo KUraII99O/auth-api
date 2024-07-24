@@ -26,8 +26,9 @@ const cowFeeds = [];
 const routineMonitors = [];
 const vaccineMonitors = [];
 const stalls = [];
-const expenses = [];
 const cows = [];
+const expenses = [];
+const expensePurposes  = [];
 const calves = [];
 const pregnancies = [];
 const sales = [];
@@ -43,6 +44,8 @@ const subscriptionPlans = [
         staffs: 10,
         cows: 10,
         usageHours: 10,
+        pregnancies: 10,
+
       },
     },
   },
@@ -58,6 +61,7 @@ const subscriptionPlans = [
         staffs: 50,
         cows: 50,
         usageHours: 50,
+        pregnancies: 50,
       },
     },
   },
@@ -73,6 +77,7 @@ const subscriptionPlans = [
         staffs: 100,
         cows: 100,
         usageHours: 100,
+        pregnancies: 100,
       },
     },
   },
@@ -87,6 +92,7 @@ const subscriptionPlans = [
         staffs: Infinity,
         cows: Infinity,
         usageHours: Infinity,
+        pregnancies: Infinity,
       },
     },
   },
@@ -124,6 +130,10 @@ function generateInvoice(user) {
   };
 }
 
+const asyncHandler = fn => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
 const User = mongoose.model("User", {
   id: { type: String }, // Ensure id is a string
   email: String,
@@ -155,6 +165,8 @@ const RoutineMonitor = require("./modles/Routine"); // Adjusted path
 const VaccineMonitor = require("./modles/vaccines"); // Adjusted path
 const Stall = require("./modles/Stalls"); // Adjusted path
 const Cow = require("./modles/Cows"); // Adjusted path
+const Pregnancy = require("./modles/Pregnancies"); // Adjusted path
+const ExpensePurpose = require("./modles/ExpensePurpose"); // Adjusted path
 
 const users = [
   {
@@ -1065,9 +1077,24 @@ app.post("/cows", async (req, res) => {
 
 // Get Cows Endpoint
 app.get("/cows", async (req, res) => {
-  const dbResults = await Cow.find();
-  res.json(dbResults);
+  const { stallNumber, userId } = req.query;  // Use req.query to access query parameters
+
+  try {
+    // Build the query object
+    const query = {};
+    if (stallNumber) query.stallNumber = stallNumber;
+    if (userId) query.userId = userId;
+    
+    // Find cows based on the query object
+    const dbResults = await Cow.find(query);
+    
+    res.json(dbResults);
+  } catch (error) {
+    console.error("Error fetching cow data:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
+
 
 // Edit Cow Data Endpoint
 app.put("/cows/:id", async (req, res) => {
@@ -1222,57 +1249,75 @@ app.put("/calves/:id/toggle-status", (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-app.post("/pregnancies", (req, res) => {
-  pregnancies.push(req.body);
-  res
-    .status(201)
-    .json({ message: "Pregnancy added successfully", data: req.body });
-});
+app.post("/pregnancies", asyncHandler(async (req, res) => {
 
-app.get("/pregnancies", (req, res) => {
-  const { animalId } = req.query;
+  const newPregnancy = new Pregnancy({ id: uuidv4(), ...req.body });
+  await newPregnancy.save(); // Save to MongoDB
+  pregnancies.push(newPregnancy); // Save to in-memory storage
 
-  if (animalId) {
-    // Filter pregnancies by animalId
-    const filteredPregnancies = pregnancies.filter(
-      (pregnancy) => pregnancy.animalId === animalId
-    );
-    res.json(filteredPregnancies);
-  } else {
-    // If no animalId provided, return all pregnancies
-    res.json(pregnancies);
-  }
-});
+  res.status(201).json({ message: "Pregnancy added successfully", pregnancy: newPregnancy });
+}));
 
-app.put("/pregnancies/:id", (req, res) => {
+app.get("/pregnancies", asyncHandler(async (req, res) => {
+  const { userId, animalId } = req.query;
+
+  let query = {};
+  if (userId) query.userId = userId;
+  if (animalId) query.animalId = animalId;
+
+  const dbResults = await Pregnancy.find(query);
+  res.json(dbResults);
+}));
+
+app.put("/pregnancies/:id", asyncHandler(async (req, res) => {
   const { id } = req.params;
-
   const updatedPregnancy = req.body;
+
+  // MongoDB update
+  const pregnancy = await Pregnancy.findOneAndUpdate({ id: id }, updatedPregnancy, { new: true });
+  if (!pregnancy) {
+    return res.status(404).json({ error: "Pregnancy not found" });
+  }
+
+  // In-memory update
   const index = pregnancies.findIndex((data) => data.id === id);
   if (index === -1) {
     return res.status(404).json({ error: "Pregnancy not found" });
   }
+
+  if (pregnancies[index].userId !== updatedPregnancy.userId) {
+    return res.status(400).json({ error: "UserId mismatch" });
+  }
+
   pregnancies[index] = updatedPregnancy;
-  res.json({
-    message: "Pregnancy data updated successfully",
-    data: updatedPregnancy,
-  });
-});
 
-app.delete("/pregnancies/:id", (req, res) => {
+  res.json({ message: "Pregnancy data updated successfully", data: updatedPregnancy });
+}));
+
+app.delete("/pregnancies/:id", asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { userId } = req.body; // Assuming userId is passed in the request body for verification
 
+  // MongoDB delete
+  const pregnancy = await Pregnancy.findOneAndDelete({ id: id });
+  if (!pregnancy) {
+    return res.status(404).json({ error: "Pregnancy not found" });
+  }
+
+  // In-memory delete
   const index = pregnancies.findIndex((data) => data.id === id);
   if (index === -1) {
-    return res.status(404).json({ error: "Pregnancy data not found" });
+    return res.status(404).json({ error: "Pregnancy not found" });
+  }
+
+  if (pregnancies[index].userId !== userId) {
+    return res.status(400).json({ error: "UserId mismatch" });
   }
 
   const deletedPregnancy = pregnancies.splice(index, 1)[0];
-  res.json({
-    message: "Pregnancy deleted successfully",
-    data: deletedPregnancy,
-  });
-});
+
+  res.json({ message: "Pregnancy deleted successfully", data: deletedPregnancy });
+}));
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Add Sale Endpoint
@@ -1357,6 +1402,73 @@ app.delete("/expenses/:id", (req, res) => {
     message: "Expense deleted successfully",
     expense: deletedExpense,
   });
+});
+("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+// Add Expense Purpose Endpoint
+app.post("/expense-purposes", async (req, res) => {
+  const newExpensePurpose = { ...req.body, date: new Date().toLocaleDateString() }; // Adding the current date
+
+  // In-memory storage
+  expensePurposes.push(newExpensePurpose);
+
+  // MongoDB storage
+  const expensePurpose = new ExpensePurpose(newExpensePurpose);
+  await expensePurpose.save();
+
+  res.status(201).json({
+    message: "Expense purpose added successfully",
+    data: newExpensePurpose,
+  });
+});
+
+// Get Expense Purposes Endpoint
+app.get("/expense-purposes", async (req, res) => {
+  const dbResults = await ExpensePurpose.find();
+  res.json(dbResults);
+});
+
+// Edit Expense Purpose Data Endpoint
+app.put("/expense-purposes/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedExpensePurpose = req.body;
+
+  // In-memory update
+  const index = expensePurposes.findIndex((data) => data.id === id);
+  if (index !== -1) {
+    expensePurposes[index] = updatedExpensePurpose;
+  } else {
+    return res.status(404).json({ error: "Expense purpose not found" });
+  }
+
+  // MongoDB update
+  const expensePurpose = await ExpensePurpose.findOneAndUpdate({ id: id }, updatedExpensePurpose, { new: true });
+  if (!expensePurpose) {
+    return res.status(404).json({ error: "Expense purpose not found" });
+  }
+
+  res.json({
+    message: "Expense purpose data updated successfully",
+    data: updatedExpensePurpose,
+  });
+});
+
+// Delete Expense Purpose Data Endpoint
+app.delete("/expense-purposes/:id", async (req, res) => {
+  const { id } = req.params;
+
+  // In-memory delete
+  const index = expensePurposes.findIndex((data) => data.id === id);
+  if (index !== -1) {
+    const deletedExpensePurpose = expensePurposes.splice(index, 1)[0];
+    
+    // MongoDB delete
+    await ExpensePurpose.findOneAndDelete({ id: id });
+    
+    res.json({ message: "Expense purpose deleted successfully", data: deletedExpensePurpose });
+  } else {
+    return res.status(404).json({ error: "Expense purpose not found" });
+  }
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");

@@ -7,6 +7,7 @@ const cowSchema = new mongoose.Schema({
   animal: { type: String },
   buyDate: { type: String },
   stallNumber: { type: String },
+
   buyingPrice: { type: Number },
   dateAdded: { type: Date },
   pregnantStatus: { type: String },

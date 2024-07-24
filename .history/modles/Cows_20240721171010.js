@@ -2,11 +2,10 @@ const mongoose = require("mongoose");
 
 const cowSchema = new mongoose.Schema({
   id: { type: String },
-  image: { type: String },
   userId: { type: String },
+  image: { type: String },
   animal: { type: String },
   buyDate: { type: String },
-  stallNumber: { type: String },
   buyingPrice: { type: Number },
   dateAdded: { type: Date },
   pregnantStatus: { type: String },

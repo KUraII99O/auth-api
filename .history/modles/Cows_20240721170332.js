@@ -2,11 +2,11 @@ const mongoose = require("mongoose");
 
 const cowSchema = new mongoose.Schema({
   id: { type: String },
-  image: { type: String },
+  id: { type: String },
   userId: { type: String },
+  image: { type: String },
   animal: { type: String },
   buyDate: { type: String },
-  stallNumber: { type: String },
   buyingPrice: { type: Number },
   dateAdded: { type: Date },
   pregnantStatus: { type: String },
@@ -14,7 +14,7 @@ const cowSchema = new mongoose.Schema({
   status: { type: Boolean, default: false },
   gender: { type: String },
   informations: {
-    stallNumber: { type: String },
+    stallnumber: { type: String },
     dateOfBirth: { type: Date },
     animalAgeDays: { type: Number },
     weight: { type: String },
