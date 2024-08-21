@@ -1,18 +1,17 @@
 const mongoose = require("mongoose");
 
-const vaccineMonitorSchema = new mongoose.Schema({
-  id: String,
+const VaccineSchema = new mongoose.Schema({
+  id:  String,  
+  vaccineName:  String,
+  periodDays: String,
+  repeatVaccine: Boolean,
+  dose: String,
+  note: String,
   userId: String,
-  stallNo: String,
-  CowNumber: String,
-  date: Date,
-  reportedby: String,
-  Dose: String,
-  Repeat: String,
-  Remarks: String,
-  GivenTime: String,
+
+
 });
 
-const VaccineMonitor = mongoose.model("VaccineMonitor", vaccineMonitorSchema);
+const Vaccine  = mongoose.model("Vaccine ", VaccineSchema);
 
-module.exports = VaccineMonitor;
+module.exports = Vaccine;

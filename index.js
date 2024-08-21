@@ -23,6 +23,8 @@ const employees = [];
 const milks = [];
 const milksales = [];
 const cowFeeds = [];
+const foodItems = [];
+const suppliers = [];
 const routineMonitors = [];
 const animalTypes  = [];
 const colors = [];
@@ -34,9 +36,12 @@ const cows = [];
 const expenses = [];
 const branches  = [];
 const expensePurposes  = [];
+const monitoringServices  = [];
 const calves = [];
 const pregnancies = [];
 const sales = [];
+const vaccines = [];
+const foodUnits = [];
 const subscriptionPlans = [
   {
     id: 1,
@@ -167,7 +172,7 @@ const Staff = require("./modles/Staff"); // Adjusted path
 const MilkSale = require("./modles/MilkSale"); // Adjusted path
 const CowFeed = require("./modles/CowFeed"); // Adjusted path
 const RoutineMonitor = require("./modles/Routine"); // Adjusted path
-const VaccineMonitor = require("./modles/vaccines"); // Adjusted path
+const VaccineMonitor = require("./modles/VaccineMonitor"); // Adjusted path
 const Stall = require("./modles/Stalls"); // Adjusted path
 const Cow = require("./modles/Cows"); // Adjusted path
 const Pregnancy = require("./modles/Pregnancies"); // Adjusted path
@@ -177,6 +182,10 @@ const UserType = require('./modles/UserType'); // Adjust the path to your UserTy
 const Designation = require('./modles/Designation'); // Adjust the path to your UserType model
 const Color = require('./modles/Colors'); // Adjust the path to your UserType model
 const AnimalType = require('./modles/AnimalTypes'); // Adjust the path to your UserType model
+const FoodUnit = require('./modles/FoodUnit'); // Adjust the path to your UserType model
+const Supplier  = require('./modles/Suppliers'); // Adjust the path to your UserType model
+const FoodItem = require('./modles/FoodItem'); // Adjust the path to your UserType model
+const MonitoringService = require('./modles/MonitoringService'); // Adjust the path to your UserType model
 
 const users = [
   {
@@ -912,7 +921,7 @@ app.delete("/routines/:id", async (req, res) => {
 });
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Add Vaccine Monitor Endpoint
-app.post("/vaccines", async (req, res) => {
+app.post("/vaccines-monitor", async (req, res) => {
   const newVaccineMonitor = { ...req.body };
   vaccineMonitors.push(newVaccineMonitor); // In-memory
   const vaccineMonitor = new VaccineMonitor(newVaccineMonitor); // MongoDB
@@ -924,7 +933,7 @@ app.post("/vaccines", async (req, res) => {
 });
 
 // Get Vaccine Monitors Endpoint
-app.get("/vaccines", async (req, res) => {
+app.get("/vaccines-monitor", async (req, res) => {
   const { userId } = req.query;
   const memoryResults = vaccineMonitors.filter((vaccineMonitor) => vaccineMonitor.userId === userId);
   const dbResults = await VaccineMonitor.find({ userId });
@@ -932,7 +941,7 @@ app.get("/vaccines", async (req, res) => {
 });
 
 // Edit Vaccine Monitor Endpoint
-app.put("/vaccines/:id", async (req, res) => {
+app.put("/vaccines-monitor/:id", async (req, res) => {
   const { id } = req.params;
   const updatedVaccineMonitor = req.body;
 
@@ -955,7 +964,7 @@ app.put("/vaccines/:id", async (req, res) => {
 });
 
 // Delete Vaccine Monitor Endpoint
-app.delete("/vaccines/:id", async (req, res) => {
+app.delete("/vaccines-monitor/:id", async (req, res) => {
   const { id } = req.params;
 
   // In-memory delete
@@ -2002,6 +2011,482 @@ app.delete("/animal-types/:id", async (req, res) => {
   }
 });
 
+("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+// Add Vaccine Endpoint
+app.post("/vaccines", async (req, res) => {
+  try {
+    const newVaccine = { ...req.body, date: new Date().toLocaleDateString() };
+
+    // In-memory storage
+    vaccines.push(newVaccine);
+
+    // MongoDB storage
+    const vaccine = new Vaccine(newVaccine);
+    await vaccine.save();
+
+    res.status(201).json({
+      message: "Vaccine added successfully",
+      data: newVaccine,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get Vaccines Endpoint
+app.get("/vaccines", async (req, res) => {
+  try {
+    const { userId } = req.query; // Assuming you want to filter vaccines by userId
+    let vaccinesFromDB = await Vaccine.find();
+
+    if (userId) {
+      vaccinesFromDB = vaccinesFromDB.filter((vaccine) => vaccine.userId === userId);
+    }
+
+    res.json(vaccinesFromDB);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update Vaccine Endpoint
+app.put("/vaccines/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedVaccine = req.body;
+
+  try {
+    // MongoDB update
+    const result = await Vaccine.findOneAndUpdate({ id }, updatedVaccine, { new: true });
+    if (!result) {
+      return res.status(404).json({ error: "Vaccine not found" });
+    }
+
+    // Update in-memory storage if needed
+    const index = vaccines.findIndex((vaccine) => vaccine.id === id);
+    if (index !== -1) {
+      vaccines[index] = result;
+    }
+
+    res.json({
+      message: "Vaccine updated successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete Vaccine Endpoint
+app.delete("/vaccines/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // MongoDB delete
+    const result = await Vaccine.findOneAndDelete({ id });
+    if (!result) {
+      return res.status(404).json({ error: "Vaccine not found" });
+    }
+
+    // Remove from in-memory storage if needed
+    const index = vaccines.findIndex((vaccine) => vaccine.id === id);
+    if (index !== -1) {
+      const deletedVaccine = vaccines.splice(index, 1)[0];
+      res.json({
+        message: "Vaccine deleted successfully",
+        data: deletedVaccine,
+      });
+    } else {
+      res.json({
+        message: "Vaccine deleted successfully",
+        data: result,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+
+// Add FoodUnit Endpoint
+app.post("/food-units", async (req, res) => {
+  try {
+    const newFoodUnit = { ...req.body, date: new Date().toLocaleDateString() };
+
+    // In-memory storage
+    foodUnits.push(newFoodUnit);
+
+    // MongoDB storage
+    const foodUnit = new FoodUnit(newFoodUnit);
+    await foodUnit.save();
+
+    res.status(201).json({
+      message: "Food unit added successfully",
+      data: newFoodUnit,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get FoodUnits Endpoint
+app.get("/food-units", async (req, res) => {
+  try {
+    const { userId } = req.query; // Assuming you want to filter food units by userId
+    let foodUnitsFromDB = await FoodUnit.find();
+
+    if (userId) {
+      foodUnitsFromDB = foodUnitsFromDB.filter((foodUnit) => foodUnit.userId === userId);
+    }
+
+    res.json(foodUnitsFromDB);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update FoodUnit Endpoint
+app.put("/food-units/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedFoodUnit = req.body;
+
+  try {
+    // MongoDB update
+    const result = await FoodUnit.findOneAndUpdate({ id }, updatedFoodUnit, { new: true });
+    if (!result) {
+      return res.status(404).json({ error: "Food unit not found" });
+    }
+
+    // Update in-memory storage if needed
+    const index = foodUnits.findIndex((foodUnit) => foodUnit.id === id);
+    if (index !== -1) {
+      foodUnits[index] = result;
+    }
+
+    res.json({
+      message: "Food unit updated successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete FoodUnit Endpoint
+app.delete("/food-units/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // MongoDB delete
+    const result = await FoodUnit.findOneAndDelete({ id });
+    if (!result) {
+      return res.status(404).json({ error: "Food unit not found" });
+    }
+
+    // Remove from in-memory storage if needed
+    const index = foodUnits.findIndex((foodUnit) => foodUnit.id === id);
+    if (index !== -1) {
+      const deletedFoodUnit = foodUnits.splice(index, 1)[0];
+      res.json({
+        message: "Food unit deleted successfully",
+        data: deletedFoodUnit,
+      });
+    } else {
+      res.json({
+        message: "Food unit deleted successfully",
+        data: result,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+
+
+// Add Supplier Endpoint
+app.post("/suppliers", async (req, res) => {
+  try {
+    const newSupplier = { ...req.body, date: new Date().toLocaleDateString() };
+
+    // In-memory storage
+    suppliers.push(newSupplier);
+
+    // MongoDB storage
+    const supplier = new Supplier(newSupplier);
+    await supplier.save();
+
+    res.status(201).json({
+      message: "Supplier added successfully",
+      data: newSupplier,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get Suppliers Endpoint
+app.get("/suppliers", async (req, res) => {
+  try {
+    const { userId } = req.query; // Assuming you want to filter suppliers by userId
+    let suppliersFromDB = await Supplier.find();
+
+    if (userId) {
+      suppliersFromDB = suppliersFromDB.filter((supplier) => supplier.userId === userId);
+    }
+
+    res.json(suppliersFromDB);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update Supplier Endpoint
+app.put("/suppliers/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedSupplier = req.body;
+
+  try {
+    // MongoDB update
+    const result = await Supplier.findOneAndUpdate({ id }, updatedSupplier, { new: true });
+    if (!result) {
+      return res.status(404).json({ error: "Supplier not found" });
+    }
+
+    // Update in-memory storage if needed
+    const index = suppliers.findIndex((supplier) => supplier.id === id);
+    if (index !== -1) {
+      suppliers[index] = result;
+    }
+
+    res.json({
+      message: "Supplier updated successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete Supplier Endpoint
+app.delete("/suppliers/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // MongoDB delete
+    const result = await Supplier.findOneAndDelete({ id });
+    if (!result) {
+      return res.status(404).json({ error: "Supplier not found" });
+    }
+
+    // Remove from in-memory storage if needed
+    const index = suppliers.findIndex((supplier) => supplier.id === id);
+    if (index !== -1) {
+      const deletedSupplier = suppliers.splice(index, 1)[0];
+      res.json({
+        message: "Supplier deleted successfully",
+        data: deletedSupplier,
+      });
+    } else {
+      res.json({
+        message: "Supplier deleted successfully",
+        data: result,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+
+
+app.post("/food-items", async (req, res) => {
+  try {
+    const newFoodItem = { ...req.body, };
+
+    // In-memory storage
+    foodItems.push(newFoodItem);
+
+    // MongoDB storage
+    const foodItem = new FoodItem(newFoodItem);
+    await foodItem.save();
+
+    res.status(201).json({
+      message: "Food item added successfully",
+      data: newFoodItem,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/food-items", async (req, res) => {
+  try {
+    const { userId } = req.query; // Assuming you want to filter food items by userId
+    let foodItemsFromDB = await FoodItem.find();
+
+    if (userId) {
+      foodItemsFromDB = foodItemsFromDB.filter((item) => item.userId === userId);
+    }
+
+    res.json(foodItemsFromDB);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put("/food-items/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedFoodItem = req.body;
+
+  try {
+    // MongoDB update
+    const result = await FoodItem.findOneAndUpdate({ id }, updatedFoodItem, { new: true });
+    if (!result) {
+      return res.status(404).json({ error: "Food item not found" });
+    }
+
+    // Update in-memory storage if needed
+    const index = foodItems.findIndex((item) => item._id.toString() === id);
+    if (index !== -1) {
+      foodItems[index] = result;
+    }
+
+    res.json({
+      message: "Food item updated successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+app.delete("/food-items/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // MongoDB delete
+    const result = await FoodItem.findOneAndDelete({ id });
+    if (!result) {
+      return res.status(404).json({ error: "Food item not found" });
+    }
+
+    // Remove from in-memory storage if needed
+    const index = foodItems.findIndex((item) => item.id === id);
+    if (index !== -1) {
+      const deletedFoodItem = foodItems.splice(index, 1)[0];
+      res.json({
+        message: "Food item deleted successfully",
+        data: deletedFoodItem,
+      });
+    } else {
+      res.json({
+        message: "Food item deleted successfully",
+        data: result,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+app.post("/monitoring-services", async (req, res) => {
+  try {
+    const newMonitoringService = { ...req.body, lastPerformed: new Date() };
+
+    // In-memory storage
+    monitoringServices.push(newMonitoringService);
+
+    // MongoDB storage
+    const monitoringService = new MonitoringService(newMonitoringService);
+    await monitoringService.save();
+
+    res.status(201).json({
+      message: "Monitoring service added successfully",
+      data: newMonitoringService,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/monitoring-services", async (req, res) => {
+  try {
+    const { userId } = req.query; // Assuming you want to filter monitoring services by userId
+    let monitoringServicesFromDB = await MonitoringService.find();
+
+    if (userId) {
+      monitoringServicesFromDB = monitoringServicesFromDB.filter((service) => service.userId === userId);
+    }
+
+    res.json(monitoringServicesFromDB);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put("/monitoring-services/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedMonitoringService = req.body;
+
+  try {
+    // MongoDB update
+    const result = await MonitoringService.findByIdAndUpdate(id, updatedMonitoringService, { new: true });
+    if (!result) {
+      return res.status(404).json({ error: "Monitoring service not found" });
+    }
+
+    // Update in-memory storage if needed
+    const index = monitoringServices.findIndex((service) => service._id.toString() === id);
+    if (index !== -1) {
+      monitoringServices[index] = result;
+    }
+
+    res.json({
+      message: "Monitoring service updated successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete("/monitoring-services/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // MongoDB delete
+    const result = await MonitoringService.findByIdAndDelete(id);
+    if (!result) {
+      return res.status(404).json({ error: "Monitoring service not found" });
+    }
+
+    // Remove from in-memory storage if needed
+    const index = monitoringServices.findIndex((service) => service._id.toString() === id);
+    if (index !== -1) {
+      const deletedService = monitoringServices.splice(index, 1)[0];
+      res.json({
+        message: "Monitoring service deleted successfully",
+        data: deletedService,
+      });
+    } else {
+      res.json({
+        message: "Monitoring service deleted successfully",
+        data: result,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
