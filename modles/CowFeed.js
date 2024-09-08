@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 // Define the CowFeed schema
 const CowFeedSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true }, // Use your custom id field
+  id: { type: String,  }, // Use your custom id field
   date: { type: String },
-  stallNo: { type: String },
+  StallNo: { type: String },
   cowNumber: { type: String },
   note: { type: String },
   informations: {

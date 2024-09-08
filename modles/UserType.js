@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 // Define the schema for UserType
 const UserTypeSchema = new mongoose.Schema({
-  typeName: { type: String, required: true },
-  id: { type: String, required: true },
-  userId: { type: String, required: true },
+  typeName: { type: String,  },
+  id: { type: String,  },
+  userId: { type: String,  },
 
   permissions: {
     cow: {

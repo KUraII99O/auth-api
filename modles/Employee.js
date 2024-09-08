@@ -8,9 +8,9 @@ const EmployeeSchema = new mongoose.Schema({
   employeeName: { type: String, },
   monthlySalary: { type: String, },
   additionMoney: { type: String, },
-  note: { type: String, required: false },
-  image: { type: String, required: false },
-  userId: { type: String, },
+  note: { type: String },
+  image: { type: String },
+  userId: { type: String },
 
 });
 

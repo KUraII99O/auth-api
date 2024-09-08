@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 // Define the schema for UserType
 const DesignationSchema = new mongoose.Schema({
-name: { type: String, required: true },
-  id: { type: String, required: true },
-  userId: { type: String, required: true },
+name: { type: String},
+  id: { type: String},
+  userId: { type: String},
 
 
 });

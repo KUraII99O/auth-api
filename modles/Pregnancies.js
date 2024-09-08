@@ -15,6 +15,12 @@ const PregnancySchema = new mongoose.Schema({
     note: String,
     due: String,
     pregnancyStatus: String,
+    image:String,
+    animalAgeDays:String,
+
+
+
+    
  
   });
   
