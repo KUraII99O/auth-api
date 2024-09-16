@@ -5,9 +5,8 @@ const path = require("path");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
 const mongoose = require("mongoose");
-const functions = require('firebase-functions');
 const app = express();
-const PORT = 3000;
+const port = process.env.PORT || 5000;
 const adminhash = bcrypt.hashSync("adminpassword", 10);
 const cors = require("cors");
 
@@ -37,7 +36,7 @@ const expenses = [];
 const branches = [];
 const expensePurposes = [];
 const monitoringServices = [];
-const calfs  = [];
+const calfs = [];
 const pregnancies = [];
 const cowSales = [];
 const vaccines = [];
@@ -111,10 +110,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-app.use(express.json());
+app.use(express.static(path.join(__dirname, "../Farm-Dairy/dist"))); // Use 'dist' or 'build' depending on your setup
 app.use(cors());
 app.use("/public", express.static("public"));
-
+app.use(express.json());
 // User registration endpoint
 function generateInvoice(user) {
   const startDate = new Date().toISOString();
@@ -159,29 +158,29 @@ const User = mongoose.model("User", {
   status: Boolean,
 });
 
-const Employee = require("../modles/Employee"); // Adjusted path
-const Milk = require("../modles/Milk"); // Adjusted path
-const Staff = require("../modles/Staff"); // Adjusted path
-const MilkSale = require("../modles/MilkSale"); // Adjusted path
-const CowFeed = require("../modles/CowFeed"); // Adjusted path
-const RoutineMonitor = require("../modles/Routine"); // Adjusted path
-const VaccineMonitor = require("../modles/VaccineMonitor"); // Adjusted path
-const Stall = require("../modles/Stalls"); // Adjusted path
-const Cow = require("../modles/Cows"); // Adjusted path
-const Pregnancy = require("../modles/Pregnancies"); // Adjusted path
-const ExpensePurpose = require("../modles/ExpensePurpose"); // Adjusted path
-const Branch = require("../modles/Branch"); // Adjusted path
-const UserType = require("../modles/UserType"); // Adjust the path to your UserType model
-const Designation = require("../modles/Designation"); // Adjust the path to your UserType model
-const Color = require("../modles/Colors"); // Adjust the path to your UserType model
-const AnimalType = require("../modles/AnimalTypes"); // Adjust the path to your UserType model
-const FoodUnit = require("../modles/FoodUnit"); // Adjust the path to your UserType model
-const Supplier = require("../modles/Suppliers"); // Adjust the path to your UserType model
-const FoodItem = require("../modles/FoodItem"); // Adjust the path to your UserType model
-const MonitoringService = require("../modles/MonitoringService"); // Adjust the path to your UserType model
-const CowSale = require("../modles/CowSale"); // Adjust the path to your UserType model
-const Vaccine  = require("../modles/Vaccines"); // Adjust the path to your UserType model
-const Calf  = require("../modles/Calfs"); // Adjust the path to your UserType model
+const Employee = require("./modles/Employee"); // Adjusted path
+const Milk = require("./modles/Milk"); // Adjusted path
+const Staff = require("./modles/Staff"); // Adjusted path
+const MilkSale = require("./modles/MilkSale"); // Adjusted path
+const CowFeed = require("./modles/CowFeed"); // Adjusted path
+const RoutineMonitor = require("./modles/Routine"); // Adjusted path
+const VaccineMonitor = require("./modles/VaccineMonitor"); // Adjusted path
+const Stall = require("./modles/Stalls"); // Adjusted path
+const Cow = require("./modles/Cows"); // Adjusted path
+const Pregnancy = require("./modles/Pregnancies"); // Adjusted path
+const ExpensePurpose = require("./modles/ExpensePurpose"); // Adjusted path
+const Branch = require("./modles/Branch"); // Adjusted path
+const UserType = require("./modles/UserType"); // Adjust the path to your UserType model
+const Designation = require("./modles/Designation"); // Adjust the path to your UserType model
+const Color = require("./modles/Colors"); // Adjust the path to your UserType model
+const AnimalType = require("./modles/AnimalTypes"); // Adjust the path to your UserType model
+const FoodUnit = require("./modles/FoodUnit"); // Adjust the path to your UserType model
+const Supplier = require("./modles/Suppliers"); // Adjust the path to your UserType model
+const FoodItem = require("./modles/FoodItem"); // Adjust the path to your UserType model
+const MonitoringService = require("./modles/MonitoringService"); // Adjust the path to your UserType model
+const CowSale = require("./modles/CowSale"); // Adjust the path to your UserType model
+const Vaccine = require("./modles/Vaccines"); // Adjust the path to your UserType model
+const Calf = require("./modles/Calfs"); // Adjust the path to your UserType model
 
 const users = [
   {
@@ -204,7 +203,7 @@ users
       .catch((err) => console.error("Error saving user to MongoDB", err));
   });
 
-app.post("/register", async (req, res) => {
+app.post("/api/register", async (req, res) => {
   const { email, password, planId, username } = req.body;
   const userExists = users.some((u) => u.email === email);
 
@@ -261,7 +260,7 @@ app.post("/register", async (req, res) => {
   });
 });
 
-app.post("/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -297,7 +296,7 @@ app.post("/login", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Endpoint to add a user
-app.post("/users", async (req, res) => {
+app.post("/api/users", async (req, res) => {
   try {
     const newUser = new User({ ...req.body });
     await newUser.save(); // Save user to MongoDB
@@ -311,7 +310,7 @@ app.post("/users", async (req, res) => {
 });
 
 // Endpoint to get users
-app.get("/users", async (req, res) => {
+app.get("/api/users", async (req, res) => {
   try {
     let users = await User.find();
     const { userId } = req.query;
@@ -328,7 +327,7 @@ app.get("/users", async (req, res) => {
 });
 
 // Endpoint to edit a user
-app.put("/users/:id", async (req, res) => {
+app.put("/api/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updatedUser = req.body;
@@ -352,7 +351,7 @@ app.put("/users/:id", async (req, res) => {
 });
 
 // Endpoint to delete a user
-app.delete("/users/:id", async (req, res) => {
+app.delete("/api/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -371,7 +370,7 @@ app.delete("/users/:id", async (req, res) => {
 });
 
 // Endpoint to toggle user status
-app.put("/users/:id/toggle-status", async (req, res) => {
+app.put("/api/users/:id/toggle-status", async (req, res) => {
   try {
     const { id } = req.params;
     let users = await User.find();
@@ -395,7 +394,7 @@ app.put("/users/:id/toggle-status", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Endpoint to add a staff
-app.post("/staffs", async (req, res) => {
+app.post("/api/staffs", async (req, res) => {
   try {
     const newStaff = new Staff({ id: uuidv4(), ...req.body });
     await newStaff.save(); // Save staff to MongoDB
@@ -410,7 +409,7 @@ app.post("/staffs", async (req, res) => {
 });
 
 // Endpoint to get staffs
-app.get("/staffs", async (req, res) => {
+app.get("/api/staffs", async (req, res) => {
   try {
     const staffsFromDB = await Staff.find();
     const { userId } = req.query;
@@ -427,7 +426,7 @@ app.get("/staffs", async (req, res) => {
 });
 
 // Endpoint to edit a staff
-app.put("/staffs/:id", async (req, res) => {
+app.put("/api/staffs/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updatedStaff = req.body;
@@ -455,7 +454,7 @@ app.put("/staffs/:id", async (req, res) => {
 });
 
 // Endpoint to delete a staff
-app.delete("/staffs/:id", async (req, res) => {
+app.delete("/api/staffs/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -481,7 +480,7 @@ app.delete("/staffs/:id", async (req, res) => {
 });
 
 // Endpoint to toggle staff status
-app.put("/staffs/:id/toggle-status", async (req, res) => {
+app.put("/api/staffs/:id/toggle-status", async (req, res) => {
   try {
     const { id } = req.params;
     let staffs = await Staff.find();
@@ -505,7 +504,7 @@ app.put("/staffs/:id/toggle-status", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Endpoint to add a new employee
-app.post("/employees", async (req, res) => {
+app.post("/api/employees", async (req, res) => {
   try {
     const newEmployee = new Employee({ id: uuidv4(), ...req.body });
     await newEmployee.save(); // Save employee to MongoDB
@@ -520,7 +519,7 @@ app.post("/employees", async (req, res) => {
 });
 
 // Endpoint to get employees
-app.get("/employees", async (req, res) => {
+app.get("/api/employees", async (req, res) => {
   try {
     const employeesFromDB = await Employee.find();
     const { userId } = req.query;
@@ -537,7 +536,7 @@ app.get("/employees", async (req, res) => {
 });
 
 // Endpoint to edit an employee
-app.put("/employees/:id", async (req, res) => {
+app.put("/api/employees/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updatedEmployee = req.body;
@@ -565,7 +564,7 @@ app.put("/employees/:id", async (req, res) => {
 });
 
 // Endpoint to delete an employee
-app.delete("/employees/:id", async (req, res) => {
+app.delete("/api/employees/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -594,7 +593,7 @@ app.delete("/employees/:id", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Endpoint to add a new milk
-app.post("/milks", async (req, res) => {
+app.post("/api/milks", async (req, res) => {
   try {
     const newMilk = new Milk({ ...req.body });
     await newMilk.save(); // Save milk to MongoDB
@@ -607,7 +606,7 @@ app.post("/milks", async (req, res) => {
 });
 
 // Endpoint to get milks
-app.get("/milks", async (req, res) => {
+app.get("/api/milks", async (req, res) => {
   try {
     const milksFromDB = await Milk.find();
     const { userId } = req.query;
@@ -624,7 +623,7 @@ app.get("/milks", async (req, res) => {
 });
 
 // Endpoint to edit a milk
-app.put("/milks/:id", async (req, res) => {
+app.put("/api/milks/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updatedMilk = req.body;
@@ -648,7 +647,7 @@ app.put("/milks/:id", async (req, res) => {
 });
 
 // Endpoint to delete a milk
-app.delete("/milks/:id", async (req, res) => {
+app.delete("/api/milks/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -671,7 +670,7 @@ app.delete("/milks/:id", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Endpoint to add a milk sale
-app.post("/milksales", async (req, res) => {
+app.post("/api/milksales", async (req, res) => {
   try {
     const newMilkSale = new MilkSale({ id: uuidv4(), ...req.body });
     await newMilkSale.save(); // Save milk sale to MongoDB
@@ -687,7 +686,7 @@ app.post("/milksales", async (req, res) => {
 });
 
 // Get Milk Sales Endpoint
-app.get("/milksales", async (req, res) => {
+app.get("/api/milksales", async (req, res) => {
   try {
     const { userId } = req.query;
     let milkSales;
@@ -707,7 +706,7 @@ app.get("/milksales", async (req, res) => {
 });
 
 // Edit Milk Sale Endpoint
-app.put("/milksales/:id", async (req, res) => {
+app.put("/api/milksales/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updatedMilkSale = req.body;
@@ -735,7 +734,7 @@ app.put("/milksales/:id", async (req, res) => {
 });
 
 // Delete Milk Sale Endpoint
-app.delete("/milksales/:id", async (req, res) => {
+app.delete("/api/milksales/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -761,7 +760,7 @@ app.delete("/milksales/:id", async (req, res) => {
 });
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Endpoint to add cow feed data
-app.post("/cowFeeds", async (req, res) => {
+app.post("/api/cowFeeds", async (req, res) => {
   try {
     const newCowFeed = new CowFeed({
       id: req.body.id, // Use custom id field
@@ -781,7 +780,7 @@ app.post("/cowFeeds", async (req, res) => {
 });
 
 // Get all collected cow feed data
-app.get("/cowFeeds", async (req, res) => {
+app.get("/api/cowFeeds", async (req, res) => {
   try {
     const cowFeedsFromDB = await CowFeed.find();
     res.json(cowFeeds.concat(cowFeedsFromDB)); // Merge in-memory and MongoDB data
@@ -791,7 +790,7 @@ app.get("/cowFeeds", async (req, res) => {
 });
 
 // Edit Cow Feed Data Endpoint
-app.put("/cowFeeds/:id", async (req, res) => {
+app.put("/api/cowFeeds/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updatedCowFeed = req.body;
@@ -818,7 +817,7 @@ app.put("/cowFeeds/:id", async (req, res) => {
 });
 
 // Delete Cow Feed Data Endpoint
-app.delete("/cowFeeds/:id", async (req, res) => {
+app.delete("/api/cowFeeds/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -840,7 +839,7 @@ app.delete("/cowFeeds/:id", async (req, res) => {
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 // Add Routine Monitor Endpoint
-app.post("/routines", async (req, res) => {
+app.post("/api/routines", async (req, res) => {
   const newRoutineMonitor = { ...req.body };
   routineMonitors.push(newRoutineMonitor); // In-memory
   const routineMonitor = new RoutineMonitor(newRoutineMonitor); // MongoDB
@@ -852,7 +851,7 @@ app.post("/routines", async (req, res) => {
 });
 
 // Get Routine Monitors Endpoint
-app.get("/routines", async (req, res) => {
+app.get("/api/routines", async (req, res) => {
   const { userId } = req.query;
   const memoryResults = routineMonitors.filter(
     (routineMonitor) => routineMonitor.userId === userId
@@ -862,7 +861,7 @@ app.get("/routines", async (req, res) => {
 });
 
 // Edit Routine Monitor Endpoint
-app.put("/routines/:id", async (req, res) => {
+app.put("/api/routines/:id", async (req, res) => {
   const { id } = req.params;
   const updatedRoutineMonitor = req.body;
 
@@ -891,7 +890,7 @@ app.put("/routines/:id", async (req, res) => {
 });
 
 // Delete Routine Monitor Endpoint
-app.delete("/routines/:id", async (req, res) => {
+app.delete("/api/routines/:id", async (req, res) => {
   const { id } = req.params;
 
   // In-memory delete
@@ -915,7 +914,7 @@ app.delete("/routines/:id", async (req, res) => {
 });
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Add Vaccine Monitor Endpoint
-app.post("/vaccines-monitor", async (req, res) => {
+app.post("/api/vaccines-monitor", async (req, res) => {
   const newVaccineMonitor = { ...req.body };
   vaccineMonitors.push(newVaccineMonitor); // In-memory
   const vaccineMonitor = new VaccineMonitor(newVaccineMonitor); // MongoDB
@@ -927,7 +926,7 @@ app.post("/vaccines-monitor", async (req, res) => {
 });
 
 // Get Vaccine Monitors Endpoint
-app.get("/vaccines-monitor", async (req, res) => {
+app.get("/api/vaccines-monitor", async (req, res) => {
   const { userId } = req.query;
   const memoryResults = vaccineMonitors.filter(
     (vaccineMonitor) => vaccineMonitor.userId === userId
@@ -937,7 +936,7 @@ app.get("/vaccines-monitor", async (req, res) => {
 });
 
 // Edit Vaccine Monitor Endpoint
-app.put("/vaccines-monitor/:id", async (req, res) => {
+app.put("/api/vaccines-monitor/:id", async (req, res) => {
   const { id } = req.params;
   const updatedVaccineMonitor = req.body;
 
@@ -966,7 +965,7 @@ app.put("/vaccines-monitor/:id", async (req, res) => {
 });
 
 // Delete Vaccine Monitor Endpoint
-app.delete("/vaccines-monitor/:id", async (req, res) => {
+app.delete("/api/vaccines-monitor/:id", async (req, res) => {
   const { id } = req.params;
 
   // In-memory delete
@@ -992,7 +991,7 @@ app.delete("/vaccines-monitor/:id", async (req, res) => {
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 // Add Stall Endpoint
-app.post("/stalls", async (req, res) => {
+app.post("/api/stalls", async (req, res) => {
   try {
     const newStall = new Stall({ id: uuidv4(), ...req.body });
     await newStall.save(); // Save stall to MongoDB
@@ -1007,7 +1006,7 @@ app.post("/stalls", async (req, res) => {
 });
 
 // Get Stalls Endpoint with Filtering
-app.get("/stalls", async (req, res) => {
+app.get("/api/stalls", async (req, res) => {
   try {
     const stallsFromDB = await Stall.find();
     const { userId } = req.query;
@@ -1023,7 +1022,7 @@ app.get("/stalls", async (req, res) => {
   }
 });
 // Edit Stall Data Endpoint
-app.put("/stalls/:id", async (req, res) => {
+app.put("/api/stalls/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updatedStall = req.body;
@@ -1049,7 +1048,7 @@ app.put("/stalls/:id", async (req, res) => {
 });
 
 // Delete Stall Data Endpoint
-app.delete("/stalls/:id", async (req, res) => {
+app.delete("/api/stalls/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1075,7 +1074,7 @@ app.delete("/stalls/:id", async (req, res) => {
 });
 
 // Toggle Stall Status Endpoint
-app.put("/stalls/:id/toggle-status", async (req, res) => {
+app.put("/api/stalls/:id/toggle-status", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1105,7 +1104,7 @@ app.put("/stalls/:id/toggle-status", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Add Cow Endpoint
-app.post("/cows", async (req, res) => {
+app.post("/api/cows", async (req, res) => {
   const newCow = { ...req.body, date: new Date().toLocaleDateString() }; // Adding the current date
 
   // In-memory storage
@@ -1122,7 +1121,7 @@ app.post("/cows", async (req, res) => {
 });
 
 // Get Cows Endpoint
-app.get("/cows", async (req, res) => {
+app.get("/api/cows", async (req, res) => {
   const { stallNumber, userId } = req.query; // Use req.query to access query parameters
 
   try {
@@ -1142,7 +1141,7 @@ app.get("/cows", async (req, res) => {
 });
 
 // Edit Cow Data Endpoint
-app.put("/cows/:id", async (req, res) => {
+app.put("/api/cows/:id", async (req, res) => {
   const { id } = req.params;
   const updatedCow = req.body;
 
@@ -1165,7 +1164,7 @@ app.put("/cows/:id", async (req, res) => {
 });
 
 // Delete Cow Data Endpoint
-app.delete("/cows/:id", async (req, res) => {
+app.delete("/api/cows/:id", async (req, res) => {
   const { id } = req.params;
 
   // In-memory delete
@@ -1184,7 +1183,7 @@ app.delete("/cows/:id", async (req, res) => {
 });
 
 // Toggle Cow Status Endpoint
-app.put("/cows/:id/toggle-status", async (req, res) => {
+app.put("/api/cows/:id/toggle-status", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -1225,9 +1224,7 @@ app.put("/cows/:id/toggle-status", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-
-
-app.post("/calfs", async (req, res) => {
+app.post("/api/calfs", async (req, res) => {
   const newCalf = { ...req.body, date: new Date().toLocaleDateString() }; // Adding the current date
 
   // In-memory storage
@@ -1243,9 +1240,8 @@ app.post("/calfs", async (req, res) => {
   });
 });
 
-
 // Get Calfs Endpoint
-app.get("/calfs", async (req, res) => {
+app.get("/api/calfs", async (req, res) => {
   const { stallNumber, userId } = req.query; // Use req.query to access query parameters
 
   try {
@@ -1265,7 +1261,7 @@ app.get("/calfs", async (req, res) => {
 });
 
 // Edit Calf Data Endpoint
-app.put("/calfs/:id", async (req, res) => {
+app.put("/api/calfs/:id", async (req, res) => {
   const { id } = req.params;
   const updatedCalf = req.body;
 
@@ -1276,7 +1272,9 @@ app.put("/calfs/:id", async (req, res) => {
   }
 
   // MongoDB update
-  const calf = await Calf.findOneAndUpdate({ id: id }, updatedCalf, { new: true });
+  const calf = await Calf.findOneAndUpdate({ id: id }, updatedCalf, {
+    new: true,
+  });
   if (!calf) {
     return res.status(404).json({ error: "Calf not found" });
   }
@@ -1288,7 +1286,7 @@ app.put("/calfs/:id", async (req, res) => {
 });
 
 // Delete Calf Data Endpoint
-app.delete("/calfs/:id", async (req, res) => {
+app.delete("/api/calfs/:id", async (req, res) => {
   const { id } = req.params;
 
   // In-memory delete
@@ -1307,7 +1305,7 @@ app.delete("/calfs/:id", async (req, res) => {
 });
 
 // Toggle Calf Status Endpoint
-app.put("/calfs/:id/toggle-status", async (req, res) => {
+app.put("/api/calfs/:id/toggle-status", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -1346,7 +1344,7 @@ app.put("/calfs/:id/toggle-status", async (req, res) => {
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 app.post(
-  "/pregnancies",
+  "/api/pregnancies",
   asyncHandler(async (req, res) => {
     const newPregnancy = new Pregnancy({ id: uuidv4(), ...req.body });
     await newPregnancy.save(); // Save to MongoDB
@@ -1360,7 +1358,7 @@ app.post(
 );
 
 app.get(
-  "/pregnancies",
+  "/api/pregnancies",
   asyncHandler(async (req, res) => {
     const { userId, animalId } = req.query;
 
@@ -1374,7 +1372,7 @@ app.get(
 );
 
 app.put(
-  "/pregnancies/:id",
+  "/api/pregnancies/:id",
   asyncHandler(async (req, res) => {
     const { id } = req.params;
     const updatedPregnancy = req.body;
@@ -1409,7 +1407,7 @@ app.put(
 );
 
 app.delete(
-  "/pregnancies/:id",
+  "/api/pregnancies/:id",
   asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { userId } = req.body; // Assuming userId is passed in the request body for verification
@@ -1441,7 +1439,7 @@ app.delete(
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Endpoint to add a cow sale
-app.post("/cowsales", async (req, res) => {
+app.post("/api/cowsales", async (req, res) => {
   try {
     const newCowSale = new CowSale({ id: uuidv4(), ...req.body });
     await newCowSale.save(); // Save cow sale to MongoDB
@@ -1457,7 +1455,7 @@ app.post("/cowsales", async (req, res) => {
 });
 
 // Get Cow Sales Endpoint
-app.get("/cowsales", async (req, res) => {
+app.get("/api/cowsales", async (req, res) => {
   try {
     const { userId } = req.query;
     let cowSalesFromDB;
@@ -1478,7 +1476,7 @@ app.get("/cowsales", async (req, res) => {
 });
 
 // Edit Cow Sale Endpoint
-app.put("/cowsales/:id", async (req, res) => {
+app.put("/api/cowsales/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updatedCowSale = req.body;
@@ -1504,7 +1502,7 @@ app.put("/cowsales/:id", async (req, res) => {
 });
 
 // Delete Cow Sale Endpoint
-app.delete("/cowsales/:id", async (req, res) => {
+app.delete("/api/cowsales/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1531,7 +1529,7 @@ app.delete("/cowsales/:id", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Add Expense Endpoint
-app.post("/expenses", (req, res) => {
+app.post("/api/expenses", (req, res) => {
   const newExpense = { ...req.body };
   expenses.push(newExpense);
   res
@@ -1540,13 +1538,13 @@ app.post("/expenses", (req, res) => {
 });
 
 // Get Expenses Endpoint
-app.get("/expenses", (req, res) => {
+app.get("/api/expenses", (req, res) => {
   const { userId } = req.query;
   res.json(expenses.filter((expense) => expense.userId === userId));
 });
 
 // Edit Expense Endpoint
-app.put("/expenses/:id", (req, res) => {
+app.put("/api/expenses/:id", (req, res) => {
   const { id } = req.params;
   const updatedExpense = req.body;
   const index = expenses.findIndex((expense) => expense.id === id);
@@ -1561,7 +1559,7 @@ app.put("/expenses/:id", (req, res) => {
 });
 
 // Delete Expense Endpoint
-app.delete("/expenses/:id", (req, res) => {
+app.delete("/api/expenses/:id", (req, res) => {
   const { id } = req.params;
   const index = expenses.findIndex((expense) => expense.id === id);
   if (index === -1) {
@@ -1576,7 +1574,7 @@ app.delete("/expenses/:id", (req, res) => {
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 // Add Expense Purpose Endpoint
-app.post("/expense-purposes", async (req, res) => {
+app.post("/api/expense-purposes", async (req, res) => {
   try {
     const newExpensePurpose = {
       ...req.body,
@@ -1599,7 +1597,7 @@ app.post("/expense-purposes", async (req, res) => {
 });
 
 // Get Expense Purposes Endpoint
-app.get("/expense-purposes", async (req, res) => {
+app.get("/api/expense-purposes", async (req, res) => {
   try {
     const { userId } = req.query;
     let expensePurposesFromDB = await ExpensePurpose.find();
@@ -1616,7 +1614,7 @@ app.get("/expense-purposes", async (req, res) => {
   }
 });
 // Edit Expense Purpose Data Endpoint
-app.put("/expense-purposes/:id", async (req, res) => {
+app.put("/api/expense-purposes/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updatedExpensePurpose = req.body;
@@ -1648,7 +1646,7 @@ app.put("/expense-purposes/:id", async (req, res) => {
 });
 
 // Delete Expense Purpose Data Endpoint
-app.delete("/expense-purposes/:id", async (req, res) => {
+app.delete("/api/expense-purposes/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1682,7 +1680,7 @@ app.delete("/expense-purposes/:id", async (req, res) => {
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 // Add Branch Endpoint
-app.post("/branches", async (req, res) => {
+app.post("/api/branches", async (req, res) => {
   try {
     const newBranch = { ...req.body, date: new Date().toLocaleDateString() };
 
@@ -1703,7 +1701,7 @@ app.post("/branches", async (req, res) => {
 });
 
 // Get Branches Endpoint
-app.get("/branches", async (req, res) => {
+app.get("/api/branches", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter branches by userId
     let branchesFromDB = await Branch.find();
@@ -1721,7 +1719,7 @@ app.get("/branches", async (req, res) => {
 });
 
 // Update Branch Endpoint
-app.put("/branches/:id", async (req, res) => {
+app.put("/api/branches/:id", async (req, res) => {
   const { id } = req.params;
   const updatedBranch = req.body;
 
@@ -1750,7 +1748,7 @@ app.put("/branches/:id", async (req, res) => {
 });
 
 // Delete Branch Endpoint
-app.delete("/branches/:id", async (req, res) => {
+app.delete("/api/branches/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -1780,7 +1778,7 @@ app.delete("/branches/:id", async (req, res) => {
 });
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 // Add UserType Endpoint
-app.post("/userTypes", async (req, res) => {
+app.post("/api/userTypes", async (req, res) => {
   try {
     const newUserType = { ...req.body, date: new Date().toLocaleDateString() };
 
@@ -1801,7 +1799,7 @@ app.post("/userTypes", async (req, res) => {
 });
 
 // Get UserTypes Endpoint
-app.get("/userTypes", async (req, res) => {
+app.get("/api/userTypes", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter user types by userId
     let userTypesFromDB = await UserType.find();
@@ -1819,7 +1817,7 @@ app.get("/userTypes", async (req, res) => {
 });
 
 // Update UserType Endpoint
-app.put("/userTypes/:id", async (req, res) => {
+app.put("/api/userTypes/:id", async (req, res) => {
   const { id } = req.params;
   const updatedUserType = req.body;
 
@@ -1850,7 +1848,7 @@ app.put("/userTypes/:id", async (req, res) => {
 });
 
 // Delete UserType Endpoint
-app.delete("/userTypes/:id", async (req, res) => {
+app.delete("/api/userTypes/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -1884,7 +1882,7 @@ app.delete("/userTypes/:id", async (req, res) => {
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 // Add Designation Endpoint
-app.post("/designations", async (req, res) => {
+app.post("/api/designations", async (req, res) => {
   try {
     const newDesignation = {
       ...req.body,
@@ -1908,7 +1906,7 @@ app.post("/designations", async (req, res) => {
 });
 
 // Get Designations Endpoint
-app.get("/designations", async (req, res) => {
+app.get("/api/designations", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter designations by userId
     let designationsFromDB = await Designation.find();
@@ -1926,7 +1924,7 @@ app.get("/designations", async (req, res) => {
 });
 
 // Update Designation Endpoint
-app.put("/designations/:id", async (req, res) => {
+app.put("/api/designations/:id", async (req, res) => {
   const { id } = req.params;
   const updatedDesignation = req.body;
 
@@ -1959,7 +1957,7 @@ app.put("/designations/:id", async (req, res) => {
 });
 
 // Delete Designation Endpoint
-app.delete("/designations/:id", async (req, res) => {
+app.delete("/api/designations/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -1992,7 +1990,7 @@ app.delete("/designations/:id", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-app.post("/colors", async (req, res) => {
+app.post("/api/colors", async (req, res) => {
   try {
     const newColor = { ...req.body, date: new Date().toLocaleDateString() };
 
@@ -2012,7 +2010,7 @@ app.post("/colors", async (req, res) => {
   }
 });
 // Get Colors Endpoint
-app.get("/colors", async (req, res) => {
+app.get("/api/colors", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter colors by userId
     let colorsFromDB = await Color.find();
@@ -2028,7 +2026,7 @@ app.get("/colors", async (req, res) => {
 });
 
 // Edit Color Data Endpoint
-app.put("/colors/:id", async (req, res) => {
+app.put("/api/colors/:id", async (req, res) => {
   const { id } = req.params;
   const updatedColor = req.body;
 
@@ -2056,7 +2054,7 @@ app.put("/colors/:id", async (req, res) => {
   }
 });
 
-app.delete("/colors/:id", async (req, res) => {
+app.delete("/api/colors/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -2087,7 +2085,7 @@ app.delete("/colors/:id", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-app.post("/animal-types", async (req, res) => {
+app.post("/api/animal-types", async (req, res) => {
   try {
     const newAnimalType = {
       ...req.body,
@@ -2111,7 +2109,7 @@ app.post("/animal-types", async (req, res) => {
 });
 
 // Get AnimalTypes Endpoint
-app.get("/animal-types", async (req, res) => {
+app.get("/api/animal-types", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter animal types by userId
     let animalTypesFromDB = await AnimalType.find();
@@ -2129,7 +2127,7 @@ app.get("/animal-types", async (req, res) => {
 });
 
 // Edit AnimalType Data Endpoint
-app.put("/animal-types/:id", async (req, res) => {
+app.put("/api/animal-types/:id", async (req, res) => {
   const { id } = req.params;
   const updatedAnimalType = req.body;
 
@@ -2162,7 +2160,7 @@ app.put("/animal-types/:id", async (req, res) => {
 });
 
 // Delete AnimalType Endpoint
-app.delete("/animal-types/:id", async (req, res) => {
+app.delete("/api/animal-types/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -2196,7 +2194,7 @@ app.delete("/animal-types/:id", async (req, res) => {
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 // Add Vaccine Endpoint
-app.post("/vaccines", async (req, res) => {
+app.post("/api/vaccines", async (req, res) => {
   try {
     const newVaccine = { ...req.body, date: new Date().toLocaleDateString() };
 
@@ -2217,7 +2215,7 @@ app.post("/vaccines", async (req, res) => {
 });
 
 // Get Vaccines Endpoint
-app.get("/vaccines", async (req, res) => {
+app.get("/api/vaccines", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter vaccines by userId
     let vaccinesFromDB = await Vaccine.find();
@@ -2235,7 +2233,7 @@ app.get("/vaccines", async (req, res) => {
 });
 
 // Update Vaccine Endpoint
-app.put("/vaccines/:id", async (req, res) => {
+app.put("/api/vaccines/:id", async (req, res) => {
   const { id } = req.params;
   const updatedVaccine = req.body;
 
@@ -2264,7 +2262,7 @@ app.put("/vaccines/:id", async (req, res) => {
 });
 
 // Delete Vaccine Endpoint
-app.delete("/vaccines/:id", async (req, res) => {
+app.delete("/api/vaccines/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -2296,7 +2294,7 @@ app.delete("/vaccines/:id", async (req, res) => {
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 // Add FoodUnit Endpoint
-app.post("/food-units", async (req, res) => {
+app.post("/api/food-units", async (req, res) => {
   try {
     const newFoodUnit = { ...req.body, date: new Date().toLocaleDateString() };
 
@@ -2317,7 +2315,7 @@ app.post("/food-units", async (req, res) => {
 });
 
 // Get FoodUnits Endpoint
-app.get("/food-units", async (req, res) => {
+app.get("/api/food-units", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter food units by userId
     let foodUnitsFromDB = await FoodUnit.find();
@@ -2335,7 +2333,7 @@ app.get("/food-units", async (req, res) => {
 });
 
 // Update FoodUnit Endpoint
-app.put("/food-units/:id", async (req, res) => {
+app.put("/api/food-units/:id", async (req, res) => {
   const { id } = req.params;
   const updatedFoodUnit = req.body;
 
@@ -2364,7 +2362,7 @@ app.put("/food-units/:id", async (req, res) => {
 });
 
 // Delete FoodUnit Endpoint
-app.delete("/food-units/:id", async (req, res) => {
+app.delete("/api/food-units/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -2396,7 +2394,7 @@ app.delete("/food-units/:id", async (req, res) => {
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 // Add Supplier Endpoint
-app.post("/suppliers", async (req, res) => {
+app.post("/api/suppliers", async (req, res) => {
   try {
     const newSupplier = { ...req.body, date: new Date().toLocaleDateString() };
 
@@ -2417,7 +2415,7 @@ app.post("/suppliers", async (req, res) => {
 });
 
 // Get Suppliers Endpoint
-app.get("/suppliers", async (req, res) => {
+app.get("/api/suppliers", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter suppliers by userId
     let suppliersFromDB = await Supplier.find();
@@ -2435,7 +2433,7 @@ app.get("/suppliers", async (req, res) => {
 });
 
 // Update Supplier Endpoint
-app.put("/suppliers/:id", async (req, res) => {
+app.put("/api/suppliers/:id", async (req, res) => {
   const { id } = req.params;
   const updatedSupplier = req.body;
 
@@ -2464,7 +2462,7 @@ app.put("/suppliers/:id", async (req, res) => {
 });
 
 // Delete Supplier Endpoint
-app.delete("/suppliers/:id", async (req, res) => {
+app.delete("/api/suppliers/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -2495,7 +2493,7 @@ app.delete("/suppliers/:id", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-app.post("/food-items", async (req, res) => {
+app.post("/api/food-items", async (req, res) => {
   try {
     const newFoodItem = { ...req.body };
 
@@ -2515,7 +2513,7 @@ app.post("/food-items", async (req, res) => {
   }
 });
 
-app.get("/food-items", async (req, res) => {
+app.get("/api/food-items", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter food items by userId
     let foodItemsFromDB = await FoodItem.find();
@@ -2532,7 +2530,7 @@ app.get("/food-items", async (req, res) => {
   }
 });
 
-app.put("/food-items/:id", async (req, res) => {
+app.put("/api/food-items/:id", async (req, res) => {
   const { id } = req.params;
   const updatedFoodItem = req.body;
 
@@ -2560,7 +2558,7 @@ app.put("/food-items/:id", async (req, res) => {
   }
 });
 
-app.delete("/food-items/:id", async (req, res) => {
+app.delete("/api/food-items/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -2590,7 +2588,7 @@ app.delete("/food-items/:id", async (req, res) => {
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-app.post("/monitorings", async (req, res) => {
+app.post("/api/monitorings", async (req, res) => {
   try {
     const newMonitoringService = { ...req.body, lastPerformed: new Date() };
 
@@ -2610,7 +2608,7 @@ app.post("/monitorings", async (req, res) => {
   }
 });
 
-app.get("/monitorings", async (req, res) => {
+app.get("/api/monitorings", async (req, res) => {
   try {
     const { userId } = req.query; // Assuming you want to filter monitoring services by userId
     let monitoringServicesFromDB = await MonitoringService.find();
@@ -2627,7 +2625,7 @@ app.get("/monitorings", async (req, res) => {
   }
 });
 
-app.put("/monitorings/:id", async (req, res) => {
+app.put("/api/monitorings/:id", async (req, res) => {
   const { id } = req.params;
   const updatedMonitoringService = req.body;
 
@@ -2659,7 +2657,7 @@ app.put("/monitorings/:id", async (req, res) => {
   }
 });
 
-app.delete("/monitorings/:id", async (req, res) => {
+app.delete("/api/monitorings/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -2692,7 +2690,7 @@ app.delete("/monitorings/:id", async (req, res) => {
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
-app.post("/reset-password-request", (req, res) => {
+app.post("/api/reset-password-request", (req, res) => {
   const { email } = req.body;
 
   // Generate OTP (for simplicity, let's generate a 6-digit random number)
@@ -2722,12 +2720,12 @@ app.post("/reset-password-request", (req, res) => {
   });
 });
 
-app.get("/admin/plans", (req, res) => {
+app.get("/api/admin/plans", (req, res) => {
   res.json(subscriptionPlans);
 });
 
 // Create a new subscription plan
-app.post("/admin/plans", (req, res) => {
+app.post("/api/admin/plans", (req, res) => {
   const { name, price, features } = req.body;
   const plan = { id: subscriptionPlans.length + 1, name, price, features };
   subscriptionPlans.push(plan);
@@ -2739,22 +2737,22 @@ app.post("/admin/plans", (req, res) => {
 // User sign-in
 
 // Fetch all users (for testing)
-app.get("/users", (req, res) => {
+app.get("/api/users", (req, res) => {
   res.json(users);
 });
 
 // Fetch all plans
-app.get("/plans", (req, res) => {
+app.get("/api/plans", (req, res) => {
   res.json(subscriptionPlans);
 });
 
 // Fetch all invoices
-app.get("/users/:id/invoices", (req, res) => {
+app.get("/api/users/:id/invoices", (req, res) => {
   const { id } = req.params;
   res.json(invoices.filter((invoice) => invoice.userId === id));
 });
 
-app.get("/invoices/:id", (req, res) => {
+app.get("/api/invoices/:id", (req, res) => {
   const { id } = req.params;
   const invoice = invoices.find((inv) => inv.id === parseInt(id));
   if (invoice) {
@@ -2765,7 +2763,7 @@ app.get("/invoices/:id", (req, res) => {
 });
 
 // Update invoice payment status
-app.post("/invoices/pay/:id", (req, res) => {
+app.post("/api/invoices/pay/:id", (req, res) => {
   const { id } = req.params;
   const invoice = invoices.find((invoice) => invoice.id === parseInt(id));
 
@@ -2777,7 +2775,7 @@ app.post("/invoices/pay/:id", (req, res) => {
   res.status(200).json({ message: "Payment successful", invoice });
 });
 
-app.put("/upgrade/:userId", (req, res) => {
+app.put("/api/upgrade/:userId", (req, res) => {
   const { userId } = req.params;
   const { planId } = req.body;
 
@@ -2811,7 +2809,7 @@ app.put("/upgrade/:userId", (req, res) => {
   });
 });
 
-app.put("/cancel/:userId", (req, res) => {
+app.put("/api/cancel/:userId", (req, res) => {
   const { userId } = req.params;
 
   // Find the user by userId
@@ -2844,13 +2842,13 @@ app.put("/cancel/:userId", (req, res) => {
   });
 });
 
-app.get("/users/:userId/payment-methods", (req, res) => {
+app.get("/api/users/:userId/payment-methods", (req, res) => {
   const userId = req.params.userId;
   const paymentMethods = userPaymentMethods[userId] || [];
   res.json({ methods: paymentMethods });
 });
 
-app.post("/users/:userId/payment-methods/credit-card", (req, res) => {
+app.post("/api/users/:userId/payment-methods/credit-card", (req, res) => {
   const userId = req.params.userId;
   const { cardNumber, expiryDate, cvv } = req.body;
   if (!userPaymentMethods[userId]) {
@@ -2863,7 +2861,7 @@ app.post("/users/:userId/payment-methods/credit-card", (req, res) => {
   res.json({ message: "Credit Card added successfully" });
 });
 
-app.post("/users/:userId/payment-methods/paypal", (req, res) => {
+app.post("/api/users/:userId/payment-methods/paypal", (req, res) => {
   const userId = req.params.userId;
   const { email } = req.body;
   if (!userPaymentMethods[userId]) {
@@ -2876,7 +2874,7 @@ app.post("/users/:userId/payment-methods/paypal", (req, res) => {
   res.json({ message: "PayPal account added successfully" });
 });
 
-app.post("/users/:userId/payment-methods/bank", (req, res) => {
+app.post("/api/users/:userId/payment-methods/bank", (req, res) => {
   const userId = req.params.userId;
   const { accountNumber, bankName } = req.body;
   if (!userPaymentMethods[userId]) {
@@ -2889,8 +2887,6 @@ app.post("/users/:userId/payment-methods/bank", (req, res) => {
   res.json({ message: "Bank account added successfully" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
-
-exports.app = functions.https.onRequest(app);

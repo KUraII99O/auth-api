@@ -6,10 +6,13 @@
     "outDir": "lib",
     "sourceMap": true,
     "strict": true,
-    "target": "es2017"
+    "target": "es2017",
+    "rootDir": "src", // Specify the root directory of your source files
+    "baseUrl": ".", // Base directory to resolve non-relative module names
+    "paths": {
+      "*": ["node_modules/*"]
+    }
   },
-  "compileOnSave": true,
-  "include": [
-    "src"
-  ]
+  "include": ["src/**/*.ts"], // Ensure all TypeScript files in src are included
+  "exclude": ["node_modules", "lib"] // Exclude the output directory and node_modules
 }

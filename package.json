@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:frontend": "cd C:\\Users\\Fares\\Desktop\\Farm-Dairy && npm run dev",
     "start:backend": "nodemon index.js",
-    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
+    "build:frontend": "cd C:\\Users\\Fares\\Desktop\\Farm-Dairy && npm run build",
+    "start": "npm run build:frontend && npm run start:backend"
   },
   "keywords": [],
   "author": "",
