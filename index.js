@@ -2898,4 +2898,7 @@ app.post("/api/users/:userId/payment-methods/bank", (req, res) => {
   res.json({ message: "Bank account added successfully" });
 });
 
-app.listen(process.env.PORT, () => console.log(`Server running on ${process.env.PORT} PORT`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
