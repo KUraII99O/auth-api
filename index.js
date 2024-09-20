@@ -6,7 +6,6 @@ const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
 const mongoose = require("mongoose");
 const app = express();
-const port = process.env.PORT || 5000;
 const adminhash = bcrypt.hashSync("adminpassword", 10);
 const cors = require("cors");
 
@@ -2887,6 +2886,4 @@ app.post("/api/users/:userId/payment-methods/bank", (req, res) => {
   res.json({ message: "Bank account added successfully" });
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+app.listen(process.env.PORT, () => console.log(`Server running on ${process.env.PORT} PORT`));
