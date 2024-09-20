@@ -11,10 +11,8 @@ const cors = require("cors");
 
 mongoose
   .connect(
-    "mongodb+srv://faresjguerim90:TPhiaP384RWEKEnE@cluster0.8hjko.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0"
-  )
-  .then(() => console.log("Connected to database"))
-  .catch((err) => console.error("Error connecting to database", err));
+    "mongodb+srv://faresjguerim90:TPhiaP384RWEKEnE@cluster0.8hjko.mongodb.net/test?retryWrites=true&w=majority"
+  );
 
 const staffs = [];
 const employees = [];
