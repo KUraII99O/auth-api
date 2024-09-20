@@ -110,7 +110,10 @@ const transporter = nodemailer.createTransport({
 });
 
 app.use(express.static(path.join(__dirname, "../Farm-Dairy/dist"))); // Use 'dist' or 'build' depending on your setup
-app.use(cors());
+app.use(cors({
+  origin: 'https://auth-m0ippwv3p-kuraii99os-projects.vercel.app/'  // Replace with your Vercel domain
+}));
+
 app.use("/public", express.static("public"));
 app.use(express.json());
 // User registration endpoint
@@ -202,6 +205,12 @@ users
       .catch((err) => console.error("Error saving user to MongoDB", err));
   });
 
+
+  app.get("/",(req,res)=>{
+
+    res.json("hello")
+  }
+)
 app.post("/api/register", async (req, res) => {
   const { email, password, planId, username } = req.body;
   const userExists = users.some((u) => u.email === email);
