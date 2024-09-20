@@ -111,7 +111,7 @@ const transporter = nodemailer.createTransport({
 
 app.use(express.static(path.join(__dirname, "../Farm-Dairy/dist"))); // Use 'dist' or 'build' depending on your setup
 app.use(cors({
-  origin: 'https://farm-dairy.vercel.app/',  // Allow only your Vercel frontend
+  origin: 'https://farm-dairy-dnku7w8rg-kuraii99os-projects.vercel.app/',  // Allow only your Vercel frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allow specific HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'],     // Allow specific headers
   credentials: true  // Enable if you're sending cookies or auth tokens
