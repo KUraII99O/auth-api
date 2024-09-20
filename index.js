@@ -12,7 +12,7 @@ const cors = require("cors");
 
 mongoose
   .connect(
-    "mongodb://127.0.0.1:27017/farmdairy?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.10"
+    "mongodb+srv://faresjguerim90:TPhiaP384RWEKEnE@cluster0.8hjko.mongodb.net/farmdairy"
   )
   .then(() => console.log("Connected to database"))
   .catch((err) => console.error("Error connecting to database", err));

@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "outDir": "../dist",
+      "module": "commonjs",
+      "target": "ES6",
+      "esModuleInterop": true,
+      "allowJs": true,                 // Allows the inclusion of JavaScript files
+      "checkJs": false,                // Optional: set to true to check .js files with TypeScript
+      "resolveJsonModule": true,       // Allows importing JSON files if needed
+      "skipLibCheck": true             // Skips type checking of declaration files (faster builds)
+    },
+    "include": ["src/**/*", "modles/**/*.js"],
+    "exclude": ["node_modules", "dist"]
+  }
+  
