@@ -11,7 +11,7 @@ const cors = require("cors");
 
 mongoose
   .connect(
-    "mongodb+srv://faresjguerim90:TPhiaP384RWEKEnE@cluster0.8hjko.mongodb.net/test"
+    "mongodb+srv://faresjguerim90:<db_password>@cluster0.8hjko.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
   )
   .then(() => console.log("Connected to database"))
   .catch((err) => console.error("Error connecting to database", err));
