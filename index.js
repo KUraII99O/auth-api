@@ -16,7 +16,7 @@ mongoose
   newUser.save()
   .then(() => console.log("Connected to database"))
   .catch((err) => console.error("Error connecting to database", err));
-  
+
 const staffs = [];
 const employees = [];
 const milks = [];
@@ -118,7 +118,6 @@ app.use(cors({
   credentials: true  // Enable if you're sending cookies or auth tokens
 }));
 
-app.use("/public", express.static("public"));
 app.use(express.json());
 // User registration endpoint
 function generateInvoice(user) {
