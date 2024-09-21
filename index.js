@@ -11,7 +11,7 @@ const cors = require("cors");
 
 mongoose
   .connect(
-    "mongodb+srv://faresjguerim90:TPhiaP384RWEKEnE@cluster0.8hjko.mongodb.net/test?retryWrites=true&w=majority"
+   "mongodb+srv://faresjguerim90:TPhiaP384RWEKEnE@cluster0.8hjko.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
   );
 
 const staffs = [];
