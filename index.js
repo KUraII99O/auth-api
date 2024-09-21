@@ -24,7 +24,7 @@ async function run() {
     await client.connect();
 
     // Connect to the desired database
-    const database = client.db("yourDatabaseName"); // Replace with your actual database name
+    const database = client.db("gescow"); // Replace with your actual database name
 
     // List all collections in the database
     const collections = await database.listCollections().toArray();
