@@ -214,29 +214,22 @@ users
 )
 app.post("/api/register", async (req, res) => {
   const { email, password, planId, username } = req.body;
+
+  // Check for existing user
   const userExists = users.some((u) => u.email === email);
-
   if (userExists) {
-    return res
-      .status(400)
-      .json({ error: `User with email ${email} already exists` });
+    return res.status(400).json({ error: `User with email ${email} already exists` });
   }
 
-  let plan;
-  if (planId) {
-    plan = subscriptionPlans.find((p) => p.id === planId);
-  }
+  // Determine plan
+  let plan = subscriptionPlans.find((p) => p.id === planId) || subscriptionPlans.find((p) => p.id === 1); // Default to Free Plan if not found
 
-  // Assign the Free Plan if no planId is provided or if the plan is not found
-  if (!plan) {
-    plan = subscriptionPlans.find((p) => p.id === 1); // Default to Free Plan
-  }
-
+  // Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
-
   const userId = uuidv4(); // Generate UUID for user ID
   const type = "user"; // Set default user type
 
+  // Create new user instance
   const newUser = new User({
     id: userId,
     email,
@@ -246,27 +239,28 @@ app.post("/api/register", async (req, res) => {
     type,
   });
 
-  // Save to MongoDB
-  newUser
-    .save()
-    .then(() => console.log("User saved to MongoDB"))
-    .catch((err) => console.error("Error saving user to MongoDB", err));
+  try {
+    // Save user to MongoDB
+    await newUser.save();
+    console.log("User saved to MongoDB");
 
-  users.push(newUser); // Push to in-memory array
+    // Generate invoice only if the plan is not Free Plan
+    let newInvoice;
+    if (plan.id !== 1) {
+      newInvoice = generateInvoice(newUser);
+      invoices.push(newInvoice);
+    }
 
-  // Generate invoice only if plan is not Free Plan
-  let newInvoice;
-  if (plan.id !== 1) {
-    // Check if plan is not Free Plan
-    newInvoice = generateInvoice(newUser);
-    invoices.push(newInvoice);
+    // Respond with success
+    res.status(201).json({
+      message: "Sign up successful",
+      user: newUser,
+      invoice: newInvoice || null, // Return invoice only if created
+    });
+  } catch (err) {
+    console.error("Error saving user to MongoDB", err);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  res.status(200).json({
-    message: "Sign up successful",
-    user: newUser,
-    invoice: newInvoice, // Return invoice only if created
-  });
 });
 
 app.post("/api/login", async (req, res) => {
