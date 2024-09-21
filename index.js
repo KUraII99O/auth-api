@@ -11,7 +11,7 @@ const cors = require("cors");
 
 mongoose
   .connect(
-    "mongodb+srv://faresjguerim90:nCHCn6EF24Ga3ENC@gescowcluster.kbgd4.mongodb.net/gescow?retryWrites=true&w=majority&appName=gescowcluster",
+    "mongodb+srv://faresjguerim90:nCHCn6EF24Ga3ENC@gescowcluster.kbgd4.mongodb.net/gescowcluster?retryWrites=true&w=majority&appName=gescowcluster",
     { connectTimeoutMS: 30000}
   )
   .then(() => console.log("Connected to database"))
