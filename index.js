@@ -12,10 +12,7 @@ const cors = require("cors");
 mongoose
   .connect(
    "mongodb+srv://bommbala8:test123@farm.tbayu.mongodb.net/?retryWrites=true&w=majority&appName=farm"
-  )
-  newUser.save()
-  .then(() => console.log("Connected to database"))
-  .catch((err) => console.error("Error connecting to database", err));
+  );
 
 const staffs = [];
 const employees = [];
@@ -118,6 +115,7 @@ app.use(cors({
   credentials: true  // Enable if you're sending cookies or auth tokens
 }));
 
+app.use("/public", express.static("public"));
 app.use(express.json());
 // User registration endpoint
 function generateInvoice(user) {
