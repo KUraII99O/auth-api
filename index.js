@@ -141,27 +141,6 @@ const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-const User = mongoose.model("User", {
-  id: { type: String }, // Ensure id is a string
-  email: String,
-  username: String,
-  password: String,
-  plan: Object,
-  type: String,
-  name: String,
-  mobile: String,
-  designation: String,
-  joiningDate: Date,
-  permanentAddress: String,
-  nid: String,
-  image: String,
-  userType: String,
-  presentAddress: String,
-  basicSalary: String,
-  grossSalary: String,
-  resignDate: Date,
-  status: Boolean,
-});
 
 const Employee = require("./modles/Employee"); // Adjusted path
 const Milk = require("./modles/Milk"); // Adjusted path
@@ -186,6 +165,7 @@ const MonitoringService = require("./modles/MonitoringService"); // Adjust the p
 const CowSale = require("./modles/CowSale"); // Adjust the path to your UserType model
 const Vaccine = require("./modles/Vaccines"); // Adjust the path to your UserType model
 const Calf = require("./modles/Calfs"); // Adjust the path to your UserType model
+const User = require("./modles/User"); // Adjust the path to your UserType model
 
 const users = [
   {
