@@ -8,46 +8,14 @@ const mongoose = require("mongoose");
 const app = express();
 const adminhash = bcrypt.hashSync("adminpassword", 10);
 const cors = require("cors");
-const { MongoClient } = require("mongodb");
-const username = encodeURIComponent("faresjguerim90");
-const password = encodeURIComponent("nCHCn6EF24Ga3ENC");
-const cluster = "gescowcluster.kbgd4.mongodb.net";
-const authSource = "admin";  // Adjust if you're using a different auth source
-const authMechanism = "SCRAM-SHA-1";  // Or SCRAM-SHA-256 depending on your configuration
 
-const uri = `mongodb+srv://${username}:${password}@${cluster}/?authSource=${authSource}&authMechanism=${authMechanism}&retryWrites=true&w=majority&appName=gescowcluster`;
-
-const client = new MongoClient(uri);
-
-async function run() {
-  try {
-    await client.connect();
-
-    // Connect to the desired database
-    const database = client.db("gescow"); // Replace with your actual database name
-
-    // List all collections in the database
-    const collections = await database.listCollections().toArray();
-    
-    console.log("Collections in the database:");
-    collections.forEach((collection) => {
-      console.log(collection.name);  // Output the name of each collection
-    });
-
-    // Optionally query each collection (just as an example)
-    for (let collectionInfo of collections) {
-      const collection = database.collection(collectionInfo.name);
-      const documents = await collection.find().limit(5).toArray(); // Get up to 5 documents from each collection
-
-      console.log(`\nDocuments from collection ${collectionInfo.name}:`);
-      documents.forEach(doc => console.dir(doc));
-    }
-  } finally {
-    await client.close();
-  }
-}
-
-run().catch(console.dir);
+mongoose
+  .connect(
+    "mongodb+srv://faresjguerim90:nCHCn6EF24Ga3ENC@gescowcluster.kbgd4.mongodb.net/gescow?retryWrites=true&w=majority&appName=gescowcluster",
+    { useNewUrlParser: true, useUnifiedTopology: true, connectTimeoutMS: 30000}
+  )
+  .then(() => console.log("Connected to database"))
+  .catch((err) => console.error("Error connecting to database", err));
 
 const staffs = [];
 const employees = [];
@@ -143,14 +111,12 @@ const transporter = nodemailer.createTransport({
 });
 
 app.use(express.static(path.join(__dirname, "../Farm-Dairy/dist"))); // Use 'dist' or 'build' depending on your setup
-app.use(
-  cors({
-    origin: "https://farm-dairy.vercel.app", // Allow only your Vercel frontend
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allow specific HTTP methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers
-    credentials: true, // Enable if you're sending cookies or auth tokens
-  })
-);
+app.use(cors({
+  origin: 'https://farm-dairy.vercel.app',  // Allow only your Vercel frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allow specific HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'],     // Allow specific headers
+  credentials: true  // Enable if you're sending cookies or auth tokens
+}));
 
 app.use("/public", express.static("public"));
 app.use(express.json());
@@ -175,6 +141,7 @@ function generateInvoice(user) {
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
+
 
 const Employee = require("./modles/Employee"); // Adjusted path
 const Milk = require("./modles/Milk"); // Adjusted path
@@ -222,9 +189,12 @@ users
       .catch((err) => console.error("Error saving user to MongoDB", err));
   });
 
-app.get("/", (req, res) => {
-  res.json("hello");
-});
+
+  app.get("/",(req,res)=>{
+
+    res.json("hello")
+  }
+)
 app.post("/api/register", async (req, res) => {
   const { email, password, planId, username } = req.body;
   const userExists = users.some((u) => u.email === email);
