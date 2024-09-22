@@ -486,7 +486,7 @@ app.put("/api/staffs/:id/toggle-status", async (req, res) => {
 // Add Employee Endpoint
 app.post("/api/employees", async (req, res) => {
   try {
-    const newEmployee = new Employee({ id: uuidv4(), ...req.body });
+    const newEmployee = new Employee({  ...req.body });
     await newEmployee.save(); // Save employee to MongoDB
     employees.push(newEmployee); // Add employee to in-memory storage
 
@@ -546,7 +546,7 @@ app.delete("/api/employees/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedEmployee = await Employee.findOneAndDelete({ id }); // Delete from MongoDB
+    const deletedEmployee = await Employee.findOneAndDelete({ _id }); // Delete from MongoDB
 
     if (deletedEmployee) {
       const index = employees.findIndex((employee) => employee.id === id);
@@ -1028,7 +1028,7 @@ app.delete("/api/stalls/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedStall = await Stall.findOneAndDelete({ _id }); // Delete from MongoDB
+    const deletedStall = await Stall.findOneAndDelete({ id }); // Delete from MongoDB
 
     if (deletedStall) {
       const index = stalls.findIndex((stall) => stall.id === id);
