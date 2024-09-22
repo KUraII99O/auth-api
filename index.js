@@ -486,7 +486,7 @@ app.put("/api/staffs/:id/toggle-status", async (req, res) => {
 // Endpoint to add a new employee
 app.post("/api/employees", async (req, res) => {
   try {
-    const newEmployee = new Employee({ id: uuidv4(), ...req.body });
+    const newEmployee = new Employee({ ...req.body });
     await newEmployee.save(); // Save employee to MongoDB
     employees.push(newEmployee); // Add to in-memory storage
 
