@@ -12,7 +12,7 @@ const cors = require("cors");
 mongoose
   .connect(
     "mongodb+srv://faresjguerim90:nCHCn6EF24Ga3ENC@gescowcluster.kbgd4.mongodb.net/gescowcluster?retryWrites=true&w=majority&appName=gescowcluster",
-    { connectTimeoutMS: 30000}
+    { connectTimeoutMS: 30000 }
   )
   .then(() => console.log("Connected to database"))
   .catch((err) => console.error("Error connecting to database", err));
@@ -111,12 +111,14 @@ const transporter = nodemailer.createTransport({
 });
 
 app.use(express.static(path.join(__dirname, "../Farm-Dairy/dist"))); // Use 'dist' or 'build' depending on your setup
-app.use(cors({
-  origin: 'https://farm-dairy.vercel.app',  // Allow only your Vercel frontend
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allow specific HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'],     // Allow specific headers
-  credentials: true  // Enable if you're sending cookies or auth tokens
-}));
+app.use(
+  cors({
+    origin: "https://farm-dairy.vercel.app", // Allow only your Vercel frontend
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allow specific HTTP methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers
+    credentials: true, // Enable if you're sending cookies or auth tokens
+  })
+);
 
 app.use("/public", express.static("public"));
 app.use(express.json());
@@ -141,7 +143,6 @@ function generateInvoice(user) {
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
-
 
 const Employee = require("./modles/Employee"); // Adjusted path
 const Milk = require("./modles/Milk"); // Adjusted path
@@ -189,12 +190,9 @@ users
       .catch((err) => console.error("Error saving user to MongoDB", err));
   });
 
-
-  app.get("/",(req,res)=>{
-
-    res.json("hello")
-  }
-)
+app.get("/", (req, res) => {
+  res.json("hello");
+});
 app.post("/api/register", async (req, res) => {
   const { email, password, planId, username } = req.body;
   const userExists = users.some((u) => u.email === email);
@@ -385,30 +383,34 @@ app.put("/api/users/:id/toggle-status", async (req, res) => {
 });
 
 ("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-// Endpoint to add a staff member
-app.post("/api/staffs", async (req, res) => {
+// Endpoint to add an employee
+app.post("/api/employees", async (req, res) => {
   try {
-    const newStaff = new Staff({ ...req.body });
-    await newStaff.save(); // Save staff to MongoDB
+    const newEmployee = new Employee({ ...req.body });
+    await newEmployee.save(); // Save employee to MongoDB
 
-    staffs.push(newStaff); // Add staff to in-memory array (optional)
+    employees.push(newEmployee); // Add employee to in-memory array (optional)
 
-    res.status(201).json({ message: "Staff added successfully", staff: newStaff });
+    res
+      .status(201)
+      .json({ message: "Employee added successfully", employee: newEmployee });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Endpoint to get staff members
-app.get("/api/staffs", async (req, res) => {
+// Endpoint to get employees
+app.get("/api/employees", async (req, res) => {
   try {
-    let staffs = await Staff.find();
-    const { staffId } = req.query;
+    let employees = await Employee.find();
+    const { employeeId } = req.query;
     let result;
-    if (staffId) {
-      result = staffs.filter((staff) => staff.staffId === staffId);
+    if (employeeId) {
+      result = employees.filter(
+        (employee) => employee.employeeId === employeeId
+      );
     } else {
-      result = staffs; // Return all staff members (in-memory)
+      result = employees; // Return all employees (in-memory)
     }
     res.json(result);
   } catch (error) {
@@ -416,66 +418,73 @@ app.get("/api/staffs", async (req, res) => {
   }
 });
 
-// Endpoint to edit a staff member
-app.put("/api/staffs/:id", async (req, res) => {
+// Endpoint to edit an employee
+app.put("/api/employees/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedStaff = req.body;
+    const updatedEmployee = req.body;
 
-    const updatedStaffMongo = await Staff.findOneAndUpdate({ id }, updatedStaff, {
-      new: true,
-    });
+    const updatedEmployeeMongo = await Employee.findOneAndUpdate(
+      { id },
+      updatedEmployee,
+      {
+        new: true,
+      }
+    );
 
-    const index = staffs.findIndex((staff) => staff.id === id);
+    const index = employees.findIndex((employee) => employee.id === id);
     if (index !== -1) {
-      staffs[index] = updatedStaff; // Update in-memory staff member (optional)
+      employees[index] = updatedEmployee; // Update in-memory employee (optional)
     }
 
     res.json({
-      message: "Staff data updated successfully",
-      staff: updatedStaffMongo,
+      message: "Employee data updated successfully",
+      employee: updatedEmployeeMongo,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Endpoint to delete a staff member
-app.delete("/api/staffs/:id", async (req, res) => {
+// Endpoint to delete an employee
+app.delete("/api/employees/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    await Staff.findOneAndDelete({ id }); // Delete from MongoDB
+    await Employee.findOneAndDelete({ id }); // Delete from MongoDB
 
-    const index = staffs.findIndex((staff) => staff.id === id);
+    const index = employees.findIndex((employee) => employee.id === id);
     if (index !== -1) {
-      const deletedStaff = staffs.splice(index, 1)[0]; // Delete from in-memory (optional)
-      res.json({ message: "Staff deleted successfully", staff: deletedStaff });
+      const deletedEmployee = employees.splice(index, 1)[0]; // Delete from in-memory (optional)
+      res.json({
+        message: "Employee deleted successfully",
+        employee: deletedEmployee,
+      });
     } else {
-      res.status(404).json({ error: "Staff not found" });
+      res.status(404).json({ error: "Employee not found" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Endpoint to toggle staff status
-app.put("/api/staffs/:id/toggle-status", async (req, res) => {
+// Endpoint to toggle employee status
+app.put("/api/employees/:id/toggle-status", async (req, res) => {
   try {
     const { id } = req.params;
-    let staffs = await Staff.find();
-    const staff = staffs.find((staff) => staff.id === id);
-    if (!staff) {
-      return res.status(404).json({ error: "Staff not found" });
+    let employees = await Employee.find();
+    const employee = employees.find((employee) => employee.id === id);
+    if (!employee) {
+      return res.status(404).json({ error: "Employee not found" });
     }
 
     // Toggle status
-    staff.status = !staff.status;
-    await staff.save();
+    employee.status = !employee.status;
+    await employee.save();
 
     res.json({
-      message: "Staff status toggled successfully",
-      staff: staff,
+      message: "Employee status toggled successfully",
+      employee: employee,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
