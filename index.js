@@ -546,7 +546,7 @@ app.delete("/api/employees/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedEmployee = await Employee.findOneAndDelete({ _id }); // Delete from MongoDB
+    const deletedEmployee = await Employee.findOneAndDelete({ id }); // Delete from MongoDB
 
     if (deletedEmployee) {
       const index = employees.findIndex((employee) => employee.id === id);
