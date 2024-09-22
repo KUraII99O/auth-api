@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const StaffSchema = new mongoose.Schema({
 
-id: { type: String, required: true }, // Ensure id is a string
-name: String,
+id: String,  // Ensure id is a string
+employeeName: String,
 email: String,
 mobile: String,
 designation: String,
