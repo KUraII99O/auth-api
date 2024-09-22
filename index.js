@@ -1028,7 +1028,7 @@ app.delete("/api/stalls/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedStall = await Stall.findOneAndDelete({ id }); // Delete from MongoDB
+    const deletedStall = await Stall.findOneAndDelete({ _id }); // Delete from MongoDB
 
     if (deletedStall) {
       const index = stalls.findIndex((stall) => stall.id === id);
