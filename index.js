@@ -2863,6 +2863,26 @@ app.post("/api/users/:userId/payment-methods/bank", (req, res) => {
   res.json({ message: "Bank account added successfully" });
 });
 
+app.get('/api/dashboard-data', (req, res) => {
+  const data = [
+    { id: 1, title: "dashboard", value: "100" },
+    { id: 2, title: "numberofCows", value: "50" },
+    { id: 3, title: "numberofCowCalf", value: "30" },
+    { id: 4, title: "suppliers", value: "20" },
+    { id: 5, title: "numberofStalls", value: "10" },
+    { id: 6, title: "farmExpense", value: "5000" },
+    { id: 7, title: "collectMilk", value: "1200L" },
+    { id: 8, title: "saleMilk", value: "1000L" },
+    { id: 9, title: "todayCollectedMilk", value: "200L" },
+    { id: 10, title: "todaySoldMilk", value: "180L" },
+    { id: 11, title: "todayCollectedMilkAmount", value: "$400" },
+    { id: 12, title: "todaySoldMilkAmount", value: "$360" },
+  ];
+
+  // Send the data as JSON
+  res.json(data);
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
