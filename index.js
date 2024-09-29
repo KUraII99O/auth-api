@@ -2865,18 +2865,18 @@ app.post("/api/users/:userId/payment-methods/bank", (req, res) => {
 
 app.get('/api/dashboard-data', (req, res) => {
   const data = [
-    { id: 1, title: "dashboard", value: "100" },
-    { id: 2, title: "numberofCows", value: "50" },
-    { id: 3, title: "numberofCowCalf", value: "30" },
-    { id: 4, title: "suppliers", value: "20" },
-    { id: 5, title: "numberofStalls", value: "10" },
-    { id: 6, title: "farmExpense", value: "5000" },
-    { id: 7, title: "collectMilk", value: "1200L" },
-    { id: 8, title: "saleMilk", value: "1000L" },
-    { id: 9, title: "todayCollectedMilk", value: "200L" },
-    { id: 10, title: "todaySoldMilk", value: "180L" },
-    { id: 11, title: "todayCollectedMilkAmount", value: "$400" },
-    { id: 12, title: "todaySoldMilkAmount", value: "$360" },
+    { id: 1, title: "Dashboard", value: "100" },
+    { id: 2, title: "Number Of Cows", value: "50" },
+    { id: 3, title: "Number Of Cow Calfs", value: "30" },
+    { id: 4, title: "Suppliers", value: "20" },
+    { id: 5, title: "Number Of Stalls", value: "10" },
+    { id: 6, title: "Farm Expense", value: "5000" },
+    { id: 7, title: "Collected Milk", value: "1200L" },
+    { id: 8, title: "Sold Milk", value: "1000L" },
+    { id: 9, title: "Today Collected Milk", value: "200L" },
+    { id: 10, title: "Today Sold Milk", value: "180L" },
+    { id: 11, title: "Today Collected Milk Amount", value: "$400" },
+    { id: 12, title: "Today Sold Milk Amount", value: "$360" },
   ];
 
   // Send the data as JSON
